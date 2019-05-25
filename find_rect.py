@@ -16,27 +16,24 @@ number_of_computercores = 3
 # pfahltest.txt
 #filename = 'pfahltest.txt'
 #x_value_position_in_dataset,y_value_position_in_dataset = 0,1
-#maximal_length_of_side = 50.0
-#minimal_length_of_side = 0.1
-#maximal_difference_to_perfect_point = 2.0
-#maximal_degree_diviation_to_right_angle = 20.0
+#maximal_length_of_side = 4.0
+#minimal_length_of_side = 0.5
+#maximal_difference_between_comparable_sides_in_percent = 0.2
 
 # newtest.dat
 filename = 'newtest.dat'
 x_value_position_in_dataset,y_value_position_in_dataset = 1,2
 maximal_length_of_side = 45.0
 minimal_length_of_side = 2.5
-maximal_difference_to_perfect_point = 5.0
-maximal_degree_diviation_to_right_angle = 5.0
+maximal_difference_between_comparable_sides_in_percent = 0.2
 
 # zuerich_selected.txt
 #filename = 'zuerich_selected.txt'
 #x_value_position_in_dataset,y_value_position_in_dataset = 1,0
 #read_set_of_Data_from_end = True
-#maximal_length_of_side = 4.5
-#minimal_length_of_side = 2.5
-#maximal_difference_to_perfect_point = 5.0
-#maximal_degree_diviation_to_right_angle = 20.0
+#maximal_length_of_side = 10.0
+#minimal_length_of_side = 1.0
+#maximal_difference_between_comparable_sides_in_percent = 0.2
 
 min_mid_dist = 0.5
 
@@ -56,11 +53,10 @@ if __name__ == '__main__':
 
 	print('Finding rects', end='' , flush=True)
 	start = time.time()
-	found_rects, poss_rects = alg.find_rects(windows, x_values, y_values, maximal_length_of_side, minimal_length_of_side, maximal_difference_to_perfect_point, min_mid_dist, maximal_degree_diviation_to_right_angle, multicore=False, number_of_computercores=number_of_computercores)
+	found_rects = alg.find_rects(windows, x_values, y_values, maximal_length_of_side, minimal_length_of_side, min_mid_dist, maximal_difference_between_comparable_sides_in_percent,  number_of_computercores=number_of_computercores)
 	end = time.time()
-	print('Found {} rects, {} possible rects in {:.3f}s'.format(len(found_rects), len(poss_rects), end-start))
+	print('Found {} rects in {:.3f}s'.format(len(found_rects), end-start))
 		
-	hlp.showRectangales(poss_rects, x_values, y_values, block=False, name="Mögliche Rechtecke")
 	hlp.showRectangales(found_rects, x_values, y_values, block=False, name="Gefundene Rechtecke")
 	
 	print('Press Enter to exit...')
