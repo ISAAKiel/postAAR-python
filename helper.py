@@ -26,15 +26,17 @@ def add_to_list(new_rect, found_rects, min_mid_dist=0.0, replace = True, add=Tru
 		found_rects.append(new_rect)
 	return exists
 
-def calcDistanceInWindow (window, x_values, y_values):
-	window_distance = [[0.0 for point_a in range(len(window))] for point_b in range(len(window))]
-	for point_a in range(len(window)):
-		for point_b in range(len(window)):
-			if point_a != point_b and (window_distance[point_a][point_b] == 0 or window_distance[point_b][point_a] == 0):
-				distance_ab = math.sqrt(math.pow(x_values[window[point_b]] - x_values[window[point_a]], 2) + math.pow(y_values[window[point_b]] - y_values[window[point_a]],2))
-				window_distance[point_a][point_b] = distance_ab
-				window_distance[point_b][point_a] = distance_ab
-	return window_distance
+def calcDistanceInWindow (window, x_values, y_values, squared=False):
+    window_distance = [[0.0 for point_a in range(len(window))] for point_b in range(len(window))]
+    for point_a in range(len(window)):
+        for point_b in range(len(window)):
+            if point_a != point_b and (window_distance[point_a][point_b] == 0 or window_distance[point_b][point_a] == 0):
+                distance_ab = math.pow(x_values[window[point_b]] - x_values[window[point_a]], 2) + math.pow(y_values[window[point_b]] - y_values[window[point_a]],2)
+                if not squared:
+                    distance_ab = math.sqrt(distance_ab)
+                window_distance[point_a][point_b] = distance_ab
+                window_distance[point_b][point_a] = distance_ab
+    return window_distance
 
 def loadDataFromFile( filename, x_value_position_in_dataset, y_value_position_in_dataset, readFromEnd=False ):
     x_values,y_values = [],[]
