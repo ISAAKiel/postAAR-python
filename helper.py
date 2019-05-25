@@ -14,15 +14,13 @@ def equal(a,b):
 def distance_points(a,b):
 		return math.hypot(abs(b[0] - a[0]), abs(b[1] - a[1]))
 
-def add_to_list(new_rect, found_rects, min_mid_dist=0.0, replace = True, add=True):
+def add_to_list(new_rect, found_rects):
 	exists = False
-	for r in range(len(found_rects)):
-		if distance_points(found_rects[r][3], new_rect[3]) < min_mid_dist:
-			if found_rects[r][2] > new_rect[2] and replace:
-				found_rects[r] = new_rect
+	for r in found_rects:
+		if equal(r[0], new_rect[0]):
 			exists = True
 			break
-	if not exists and add:
+	if not exists:
 		found_rects.append(new_rect)
 	return exists
 
@@ -108,7 +106,11 @@ def showRectangales(rectangles, x_values, y_values, block=True, name='Rechtecke'
     rectangle_plot.grid(True)
 
     for r in rectangles:
-        rectangle_plot.plot(r[0],r[1],'b',linewidth=1.0)
+        x_points, y_points = [], []
+        for p in r[0]:
+            x_points.append(x_values[p])
+            y_points.append(y_values[p])
+        rectangle_plot.plot(x_points,y_points,'b',linewidth=1.0)
 
     rectangle_plot.scatter(x_values, y_values, c='r', s=point_size)
 

@@ -4,7 +4,7 @@ from multiprocessing import Pool
 
 import helper as hlp
 
-def calcRectsInWindow (window, x_values, y_values, maximal_length_of_side, minimal_length_of_side, min_mid_dist, maximal_difference_between_comparable_sides_in_percent=0.1):
+def calcRectsInWindow (window, x_values, y_values, maximal_length_of_side, minimal_length_of_side, maximal_difference_between_comparable_sides_in_percent=0.1):
 	rects = []
 
 	maximal_length_of_side *= maximal_length_of_side
@@ -41,17 +41,15 @@ def calcRectsInWindow (window, x_values, y_values, maximal_length_of_side, minim
 										math.fabs((dist_bc/dist_ad)-1) < maximal_difference_between_comparable_sides_in_percent and
 										math.fabs((dist_ab/dist_cd)-1) < maximal_difference_between_comparable_sides_in_percent and
 										math.fabs((dist_ac/dist_bd)-1) < maximal_difference_between_comparable_sides_in_percent):
-										new_rect = [[x_values[window[a]],x_values[window[c]],x_values[window[potential_d]],x_values[window[b]],x_values[window[a]]],
-													[y_values[window[a]],y_values[window[c]],y_values[window[potential_d]],y_values[window[b]],y_values[window[a]]], 
-													[math.fabs(dist_bc/dist_ad-1)], 
-													[(x_values[window[a]]+x_values[window[b]]+x_values[window[c]]+x_values[window[potential_d]])/4, (y_values[window[a]]+y_values[window[b]]+y_values[window[c]]+y_values[window[potential_d]])/4]]
-										hlp.add_to_list(new_rect,rects, min_mid_dist=min_mid_dist)
+										new_rect = [[window[a],window[c],window[potential_d],window[b],window[a]], 
+													[math.fabs(dist_bc/dist_ad-1)]]
+										hlp.add_to_list(new_rect,rects)
 
 						except ZeroDivisionError:
 							pass
 	return [rects]
 
-def find_rects(windows, x_values, y_values, maximal_length_of_side, minimal_length_of_side, min_mid_dist, maximal_difference_between_comparable_sides_in_percent=0.1, multicore=True, number_of_computercores=4):
+def find_rects(windows, x_values, y_values, maximal_length_of_side, minimal_length_of_side, maximal_difference_between_comparable_sides_in_percent=0.1, multicore=True, number_of_computercores=4):
 	start = time.time()
 
 	calculated_rects = []
@@ -60,7 +58,7 @@ def find_rects(windows, x_values, y_values, maximal_length_of_side, minimal_leng
 
 		results = []
 		for w in windows:
-			results.append(pool.apply_async(calcRectsInWindow, (w, x_values, y_values, maximal_length_of_side, minimal_length_of_side, min_mid_dist, maximal_difference_between_comparable_sides_in_percent, )))
+			results.append(pool.apply_async(calcRectsInWindow, (w, x_values, y_values, maximal_length_of_side, minimal_length_of_side, maximal_difference_between_comparable_sides_in_percent, )))
 
 		current_calculated_windows = 0
 		for result in results:
@@ -71,7 +69,7 @@ def find_rects(windows, x_values, y_values, maximal_length_of_side, minimal_leng
 	else:
 		current_calculated_windows = 0
 		for w in windows:
-			calculated_rects.append(calcRectsInWindow(w, x_values, y_values, maximal_length_of_side, minimal_length_of_side, min_mid_dist, maximal_difference_between_comparable_sides_in_percent))
+			calculated_rects.append(calcRectsInWindow(w, x_values, y_values, maximal_length_of_side, minimal_length_of_side, maximal_difference_between_comparable_sides_in_percent))
 			
 			current_calculated_windows += 1
 			print('\rCalculating rects {:3d}% - ({:3.3f}s)'.format(int(current_calculated_windows/len(windows)*100), (time.time()-start)), end='', flush=True)
@@ -81,6 +79,6 @@ def find_rects(windows, x_values, y_values, maximal_length_of_side, minimal_leng
 	for rects_in_window in calculated_rects:
 		print('\rConsolidating rects - {}'.format(len(found_rects)), end='')
 		for rect in rects_in_window[0]:
-			hlp.add_to_list(rect, found_rects, min_mid_dist=min_mid_dist)
+			hlp.add_to_list(rect, found_rects)
 	print()
 	return found_rects
