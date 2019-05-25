@@ -9,7 +9,12 @@ def degree_over_b(a, b, c):
     return math.atan2(c[1]-b[1],c[0]-b[0]) - math.atan2(a[1]-b[1],a[0]-b[0]) / math.pi * 90
 
 def equal(a,b):
-	return np.array_equal(np.sort(np.array(a)),np.sort(np.array(b)))
+    if len(a) != len(b):
+        return False
+    for p in a:
+        if p not in b:
+            return False
+    return True
 
 def distance_points(a,b):
 		return math.hypot(abs(b[0] - a[0]), abs(b[1] - a[1]))
