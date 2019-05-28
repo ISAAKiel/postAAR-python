@@ -50,11 +50,28 @@ def calcRectsInWindow (window, x_values, y_values, maximal_length_of_side, minim
 							pass
 	return [rects]
 
-def find_rects(windows, x_values, y_values, maximal_length_of_side, minimal_length_of_side, maximal_difference_between_comparable_sides_in_percent=0.1, multicore=True, number_of_computercores=4):
+import numpy as np
+from numba import vectorize
+
+@vectorize(['float32(float32, float32)'], target='cuda')
+def Add(a, b):
+	return a + b
+
+def find_rects(windows, x_values, y_values, maximal_length_of_side, minimal_length_of_side, maximal_difference_between_comparable_sides_in_percent=0.1, multicore=True, cuda=False, number_of_computercores=4):
 	start = time.time()
 
 	calculated_rects = []
-	if multicore:
+	if cuda:
+		N = 100000
+		A = np.ones(N, dtype=np.float32)
+		B = np.ones(A.shape, dtype=A.dtype)
+		C = np.empty_like(A, dtype=A.dtype)
+
+		# Add arrays on GPU
+		C = Add(A, B)
+		print('\rCalculating rects ({:3.3f}s)'.format((time.time()-start)), end='', flush=True)
+	
+	elif multicore:
 		pool = Pool(processes=number_of_computercores)
 
 		results = []

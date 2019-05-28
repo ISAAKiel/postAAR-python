@@ -51,7 +51,7 @@ if __name__ == '__main__':
 
 	print('Finding rects', end='' , flush=True)
 	start = time.time()
-	found_rects = alg.find_rects(windows, x_values, y_values, maximal_length_of_side, minimal_length_of_side, maximal_difference_between_comparable_sides_in_percent,  number_of_computercores=number_of_computercores)
+	found_rects = alg.find_rects(windows, x_values, y_values, maximal_length_of_side, minimal_length_of_side, maximal_difference_between_comparable_sides_in_percent, cuda=True, number_of_computercores=number_of_computercores)
 	print('Found {} rects in {:.3f}s'.format(len(found_rects), time.time()-start))
 		
 	hlp.showRectangales(found_rects, x_values, y_values, block=False, name="Gefundene Rechtecke")
