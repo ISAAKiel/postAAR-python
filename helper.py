@@ -2,6 +2,7 @@ import math
 import numpy as np
 import matplotlib.pyplot as plt
 from multiprocessing import Pool
+import random
 
 #double result = atan2(P3.y - P1.y, P3.x - P1.x) -
 #                atan2(P2.y - P1.y, P2.x - P1.x);
@@ -94,6 +95,8 @@ def showPointPlot(x_values, y_values, block=True, name='Pfostenlöcher', x_axis=
     pfostenloecher.set_xlabel(x_axis)
     pfostenloecher.set_ylabel(y_axis)
     pfostenloecher.grid(True)
+    pfostenloecher.axis('equal')
+
     pfostenloecher.scatter(x_values, y_values, c='r', s=point_size)
     fig_pfostenloecher.show()
     if block:
@@ -109,6 +112,7 @@ def showRectangales(rectangles, x_values, y_values, block=True, name='Rechtecke'
     rectangle_plot.set_xlabel(x_axis)
     rectangle_plot.set_ylabel(y_axis)
     rectangle_plot.grid(True)
+    rectangle_plot.axis('equal')
 
     for r in rectangles:
         x_points, y_points = [], []
@@ -127,4 +131,31 @@ def showRectangales(rectangles, x_values, y_values, block=True, name='Rechtecke'
 def runInThread( function, args = () ):
     pool = Pool(processes=2)
     return pool.apply_async(function, args).get()
+
+def showBuildings(buildings, x_values, y_values, block=True, name='Gebäude', x_axis='x in m', y_axis='y in m', point_size=10):
+    
+	fig_rectangle = plt.figure()
+	fig_rectangle.canvas.set_window_title(name)
+	rectangle_plot = fig_rectangle.add_subplot(111)
+	rectangle_plot.set_title(name)
+	rectangle_plot.set_xlabel(x_axis)
+	rectangle_plot.set_ylabel(y_axis)
+	rectangle_plot.grid(True)
+	rectangle_plot.axis('equal')
+
+	for building in buildings:
+		building_color = (random.uniform(0, 1), random.uniform(0, 1), random.uniform(0, 1))
+		for r in building:
+			x_points, y_points = [], []
+			for p in r[0]:
+				x_points.append(x_values[p])
+				y_points.append(y_values[p])
+			rectangle_plot.plot(x_points,y_points, c=building_color,linewidth=1.0)
+
+	rectangle_plot.scatter(x_values, y_values, c='r', s=point_size)
+
+	fig_rectangle.show()
+	if block:
+		print("Press Key to continue...")
+		plt.waitforbuttonpress(0)
     
