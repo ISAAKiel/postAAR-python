@@ -1,6 +1,7 @@
 import time
 import math
 from multiprocessing import Pool
+from shapely.geometry import Polygon
 
 import helper as hlp
 
@@ -82,3 +83,59 @@ def find_rects(windows, x_values, y_values, maximal_length_of_side, minimal_leng
 			hlp.add_to_list(rect, found_rects)
 	print()
 	return found_rects
+
+def findBuildings( found_rects, x_values, y_values):
+	buildings = []
+	while found_rects:
+		building = []
+		building.append(found_rects.pop())
+		for rect in range(len(found_rects)):
+			if rect >= len(found_rects):
+				break
+			if isPartOfBuilding(found_rects[rect], building, x_values, y_values):
+				building.append(found_rects.pop(rect))
+		if len(building) > 1:
+			buildings.append(building)
+	return buildings
+
+def isPartOfBuilding(rect,building, x_values, y_values, strict=True):
+
+	connected = False
+
+	for part in building:
+		point_of_part_in_rect = []
+		for point in part[0]:
+			if point in rect[0]:
+				point_of_part_in_rect.append(point)
+		if len(point_of_part_in_rect) == 2:
+			if (
+				math.fabs(part[0].index(point_of_part_in_rect[0]) - part[0].index(point_of_part_in_rect[1])) == 1 and
+				math.fabs(rect[0].index(point_of_part_in_rect[0]) - rect[0].index(point_of_part_in_rect[1])) == 1
+			):
+				connected = True
+				break
+			
+	if connected:
+		overlaps = 0
+		contains = 0
+
+		rect_points = []
+		for point in rect[0]:
+			rect_points.append((x_values[point], y_values[point]))
+		rect_polygon = Polygon(rect_points)
+		for part in building:
+			part_points = []
+			for point in part[0]:
+				part_points.append((x_values[point], y_values[point]))
+
+			part_polygon = Polygon(part_points)
+			if part_polygon.overlaps(rect_polygon) or rect_polygon.overlaps(part_polygon):
+				overlaps += 1	
+			if part_polygon.contains(rect_polygon) or rect_polygon.contains(part_polygon):
+				contains += 1
+		
+		if strict and overlaps == 0 and contains == 0:		
+			return True
+		if not strict and overlaps == 0:
+			return True
+	return False
