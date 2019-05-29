@@ -51,25 +51,100 @@ def calcRectsInWindow (window, x_values, y_values, maximal_length_of_side, minim
 	return [rects]
 
 import numpy as np
-from numba import vectorize
+from numba import jit, prange, cuda
 
-@vectorize(['float32(float32, float32)'], target='cuda')
-def Add(a, b):
-	return a + b
+@cuda.jit(nopython=True, parallel=True, cache=True, nogil=True)
+def calcRectsInWindow_cuda (window, x_values, y_values, maximal_length_of_side, minimal_length_of_side, maximal_difference_between_comparable_sides_in_percent=0.1):
+	rects = np.zeros(1000000, dtype=np.int64)
+	rect_number = 0
+	
+	maximal_length_of_side *= maximal_length_of_side
+	minimal_length_of_side *= minimal_length_of_side
+
+	distance_in_window = hlp.calcDistanceInWindow_cuda(window, x_values, y_values, squared=True)
+	
+	for a in prange(window.size):
+		for b in prange(window.size):
+			if a == b:
+				break
+
+			dist_ab = distance_in_window[a*window.size+b]
+			
+			if dist_ab < maximal_length_of_side and dist_ab > minimal_length_of_side:
+				for c in prange(window.size):
+					if c == b or c == a:
+						break
+
+					dist_ac = distance_in_window[a*window.size+c]
+					
+					if dist_ac < maximal_length_of_side and dist_ac > minimal_length_of_side:
+						
+						dist_bc = distance_in_window[b*window.size+c]
+						
+						if dist_ab < dist_bc:
+							for potential_d in prange(window.size):
+								dist_bd = distance_in_window[b*window.size+potential_d]
+								dist_ad = distance_in_window[a*window.size+potential_d]
+								dist_cd = distance_in_window[c*window.size+potential_d]
+								if (
+									dist_bd < maximal_length_of_side and dist_bd > minimal_length_of_side and
+									dist_bc > dist_bd and
+									dist_ac < dist_ad and
+									math.fabs((dist_bc/dist_ad)-1) < maximal_difference_between_comparable_sides_in_percent and
+									math.fabs((dist_ab/dist_cd)-1) < maximal_difference_between_comparable_sides_in_percent and
+									math.fabs((dist_ac/dist_bd)-1) < maximal_difference_between_comparable_sides_in_percent):
+									
+									rects[rect_number*5+0] = window[a]
+									rects[rect_number*5+1] = window[c]
+									rects[rect_number*5+2] = window[potential_d]
+									rects[rect_number*5+3] = window[b]
+									rects[rect_number*5+4] = window[a]
+
+									rect_number += 1
+						
+	
+	return rects
 
 def find_rects(windows, x_values, y_values, maximal_length_of_side, minimal_length_of_side, maximal_difference_between_comparable_sides_in_percent=0.1, multicore=True, cuda=False, number_of_computercores=4):
 	start = time.time()
 
 	calculated_rects = []
 	if cuda:
-		N = 100000
-		A = np.ones(N, dtype=np.float32)
-		B = np.ones(A.shape, dtype=A.dtype)
-		C = np.empty_like(A, dtype=A.dtype)
+		x_values = np.array(x_values, dtype=np.float64)
+		y_values = np.array(y_values, dtype=np.float64)
+		
+		current_calculated_windows = 0
+		for w in windows:
+			w = np.array(w, dtype=np.int64)
+			window_rects_np = calcRectsInWindow_cuda(w, x_values, y_values, maximal_length_of_side, minimal_length_of_side, maximal_difference_between_comparable_sides_in_percent)
+			current_rect = 0
+			while (
+				window_rects_np.size > current_rect and 
+				not (
+					window_rects_np[current_rect*5+0] == 0 and
+					window_rects_np[current_rect*5+1] == 0 and
+					window_rects_np[current_rect*5+2] == 0 and
+					window_rects_np[current_rect*5+3] == 0 and
+					window_rects_np[current_rect*5+4] == 0
+				)):
+				calculated_rects.append([[
+					window_rects_np[current_rect*5+0],
+					window_rects_np[current_rect*5+1],
+					window_rects_np[current_rect*5+2],
+					window_rects_np[current_rect*5+3],
+					window_rects_np[current_rect*5+4]],
+					[0]])
+				current_rect += 1
 
-		# Add arrays on GPU
-		C = Add(A, B)
-		print('\rCalculating rects ({:3.3f}s)'.format((time.time()-start)), end='', flush=True)
+			current_calculated_windows += 1
+			print('\rCalculating rects {:3d}% - ({:3.3f}s)'.format(int(current_calculated_windows/len(windows)*100), (time.time()-start)), end='', flush=True)
+
+		print('\nConsolidating rects')
+		found_rects = []
+		for rect in calculated_rects:
+			hlp.add_to_list(rect, found_rects)	
+		print()
+		return found_rects
 	
 	elif multicore:
 		pool = Pool(processes=number_of_computercores)

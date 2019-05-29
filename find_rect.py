@@ -28,12 +28,12 @@ minimal_length_of_side = 2.5
 maximal_difference_between_comparable_sides_in_percent = 0.25
 
 # zuerich_selected.txt
-#filename = 'zuerich_selected.txt'
-#x_value_position_in_dataset,y_value_position_in_dataset = 1,0
-#read_set_of_Data_from_end = True
-#maximal_length_of_side = 10.0
-#minimal_length_of_side = 1.0
-#maximal_difference_between_comparable_sides_in_percent = 0.05
+filename = 'zuerich_selected.txt'
+x_value_position_in_dataset,y_value_position_in_dataset = 1,0
+read_set_of_Data_from_end = True
+maximal_length_of_side = 10.0
+minimal_length_of_side = 1.0
+maximal_difference_between_comparable_sides_in_percent = 0.05
 
 if __name__ == '__main__':
 	print('Loading data')

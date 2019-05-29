@@ -3,6 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from multiprocessing import Pool
 import random
+from numba import jit, prange
 
 #double result = atan2(P3.y - P1.y, P3.x - P1.x) -
 #                atan2(P2.y - P1.y, P2.x - P1.x);
@@ -40,6 +41,19 @@ def calcDistanceInWindow (window, x_values, y_values, squared=False):
                     distance_ab = math.sqrt(distance_ab)
                 window_distance[point_a][point_b] = distance_ab
                 window_distance[point_b][point_a] = distance_ab
+    return window_distance
+
+@jit(nopython=True, parallel=True, cache=True, nogil=True)
+def calcDistanceInWindow_cuda (window, x_values, y_values, squared=False):
+    window_distance = np.zeros(window.size*window.size)
+    for point_a in prange(window.size):
+        for point_b in prange(window.size):
+            if point_a != point_b and (window_distance[point_a*window.size+point_b] == 0 or window_distance[point_b*window.size+point_a] == 0):
+                distance_ab = math.pow(x_values[window[point_b]] - x_values[window[point_a]], 2) + math.pow(y_values[window[point_b]] - y_values[window[point_a]],2)
+                if not squared:
+                    distance_ab = math.sqrt(distance_ab)
+                window_distance[point_a*window.size+point_b] = distance_ab
+                window_distance[point_b*window.size+point_a] = distance_ab
     return window_distance
 
 def loadDataFromFile( filename, x_value_position_in_dataset, y_value_position_in_dataset, readFromEnd=False ):
