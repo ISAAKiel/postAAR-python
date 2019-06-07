@@ -86,14 +86,14 @@ def find_rects(windows, x_values, y_values, maximal_length_of_side, minimal_leng
 
 def findBuildings( found_rects, x_values, y_values):
 	buildings = []
-	while found_rects:
+	for base_rect in range(len(found_rects)):
 		building = []
-		building.append(found_rects.pop())
-		for rect in range(len(found_rects)):
-			if rect >= len(found_rects):
-				break
-			if isPartOfBuilding(found_rects[rect], building, x_values, y_values):
-				building.append(found_rects.pop(rect))
+		building.append(found_rects[base_rect])
+		for rect_to_add in range(len(found_rects)):
+			if rect_to_add == base_rect:
+				continue
+			if isPartOfBuilding(found_rects[rect_to_add], building, x_values, y_values):
+				building.append(found_rects[rect_to_add])
 		if len(building) > 1:
 			buildings.append(building)
 	return buildings
