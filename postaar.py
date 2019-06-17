@@ -24,6 +24,7 @@
 from PyQt5.QtCore import QSettings, QTranslator, qVersion, QCoreApplication
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QAction
+from qgis.core import *
 
 # Initialize Qt resources from file resources.py
 from .resources import *
@@ -191,12 +192,36 @@ class postAAR:
             self.first_start = False
             self.dlg = postAARDialog()
 
+        
         # show the dialog
         self.dlg.show()
+        
         # Run the dialog event loop
         result = self.dlg.exec_()
         # See if OK was pressed
         if result:
-            # Do something useful here - delete the line containing pass and
-            # substitute with your code.
-            pass
+            ## Do something useful here - delete the line containing pass and
+            ## substitute with your code.
+            #pass
+            postlayer = self.dlg.cmb_layer_selected.currentLayer()
+            maximum_length_of_side = unicode(self.dlg.maximum_length_of_side.text())
+            minimum_length_of_side = unicode(self.dlg.minimum_length_of_side.text())
+            max_diff_side = unicode(self.dlg.maximal_difference_between_comparable_sides_in_percent.text())
+            results_shape = unicode(self.dlg.file_with_rectangles.filePath())
+            
+            # Input values have to be checked
+            if postlayer.crs().isGeographic() == True:
+                criticalMessageToBar(self, 'Error',
+                                 "Layer "+layer.name()+ " is not projected. Please choose an projected reference system.")
+                printLogMessage(self,"Layer "+layer.name()+ " is not projected. Please choose an projected reference system.", 'Error_LOG')
+        
+            if postlayer.geometryType() != 0:
+                criticalMessageToBar(self, 'Error',
+                                 "Layer "+layer.name()+ " is not a point geometry. Please choose an point geometry.")
+                printLogMessage(self,"Layer "+layer.name()+ " is not a point geometry. Please choose an point geometry..", 'Error_LOG')
+
+            # write feature id, x, y into a list
+            #postslist=[]
+            #postfeatures = postlayer.getFeatures()
+            #for p in postfeatures
+            #    x = p.geom.asPoint().x()   
