@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>postAAR</string>
+   <string>postAAR - find rectangles</string>
   </property>
   <widget class="QDialogButtonBox" name="button_box">
    <property name="geometry">
@@ -32,14 +32,23 @@
   <widget class="QgsMapLayerComboBox" name="cmb_layer_selected">
    <property name="geometry">
     <rect>
-     <x>199</x>
+     <x>219</x>
      <y>50</y>
      <width>201</width>
      <height>27</height>
     </rect>
    </property>
+   <property name="currentText">
+    <string/>
+   </property>
+   <property name="minimumContentsLength">
+    <number>1</number>
+   </property>
    <property name="showCrs">
     <bool>true</bool>
+   </property>
+   <property name="Filters" stdset="0">
+    <string>Union[QgsMapLayerProxyModel.PointLayer] </string>
    </property>
   </widget>
   <widget class="QLabel" name="label_cmb_Layer_selected">
@@ -56,16 +65,6 @@
    </property>
    <property name="text">
     <string>Layer with postholes (point feature)</string>
-   </property>
-  </widget>
-  <widget class="QLineEdit" name="maximum_length_of_side">
-   <property name="geometry">
-    <rect>
-     <x>200</x>
-     <y>130</y>
-     <width>61</width>
-     <height>20</height>
-    </rect>
    </property>
   </widget>
   <widget class="QLabel" name="label_max_length_side">
@@ -100,32 +99,12 @@
     <string>minimum length of rectangle side</string>
    </property>
   </widget>
-  <widget class="QLineEdit" name="minimum_length_of_side">
-   <property name="geometry">
-    <rect>
-     <x>200</x>
-     <y>160</y>
-     <width>61</width>
-     <height>20</height>
-    </rect>
-   </property>
-  </widget>
-  <widget class="QLineEdit" name="maximal_difference_between_comparable_sides_in_percent">
-   <property name="geometry">
-    <rect>
-     <x>200</x>
-     <y>200</y>
-     <width>61</width>
-     <height>20</height>
-    </rect>
-   </property>
-  </widget>
   <widget class="QLabel" name="label_maximal_difference">
    <property name="geometry">
     <rect>
      <x>20</x>
      <y>190</y>
-     <width>171</width>
+     <width>191</width>
      <height>31</height>
     </rect>
    </property>
@@ -133,17 +112,30 @@
     <string>Opposite sides of the rectangle should not differ more than the given value. Percent in 0.00 - 1.00</string>
    </property>
    <property name="text">
-    <string>maximal difference between comparable sides in percent (0.0 - 1.0)</string>
+    <string>maximal difference between 
+comparable sides (percent: 0.00 - 1.00)</string>
    </property>
   </widget>
   <widget class="QgsFileWidget" name="file_with_rectangles">
    <property name="geometry">
     <rect>
-     <x>200</x>
+     <x>220</x>
      <y>260</y>
      <width>211</width>
      <height>27</height>
     </rect>
+   </property>
+   <property name="contextMenuPolicy">
+    <enum>Qt::DefaultContextMenu</enum>
+   </property>
+   <property name="dialogTitle">
+    <string>Save rectangles as *.shp</string>
+   </property>
+   <property name="filter">
+    <string>*.shp</string>
+   </property>
+   <property name="StorageMode" stdset="0">
+    <number>3</number>
    </property>
   </widget>
   <widget class="QLabel" name="label">
@@ -175,11 +167,71 @@
   <widget class="QgsFieldComboBox" name="cmb_postid">
    <property name="geometry">
     <rect>
-     <x>200</x>
+     <x>220</x>
      <y>90</y>
      <width>201</width>
      <height>27</height>
     </rect>
+   </property>
+   <property name="minimumContentsLength">
+    <number>1</number>
+   </property>
+  </widget>
+  <widget class="QSpinBox" name="maximum_length_of_side">
+   <property name="geometry">
+    <rect>
+     <x>220</x>
+     <y>130</y>
+     <width>51</width>
+     <height>22</height>
+    </rect>
+   </property>
+   <property name="toolTip">
+    <string>Maximum lenght of a side of the rectangles to be found (map units).</string>
+   </property>
+   <property name="layoutDirection">
+    <enum>Qt::LeftToRight</enum>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+   </property>
+   <property name="minimum">
+    <number>1</number>
+   </property>
+  </widget>
+  <widget class="QSpinBox" name="minimum_length_of_side">
+   <property name="geometry">
+    <rect>
+     <x>220</x>
+     <y>160</y>
+     <width>51</width>
+     <height>22</height>
+    </rect>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+   </property>
+   <property name="minimum">
+    <number>1</number>
+   </property>
+  </widget>
+  <widget class="QDoubleSpinBox" name="maximal_difference_between_comparable_sides_in_percent">
+   <property name="geometry">
+    <rect>
+     <x>220</x>
+     <y>200</y>
+     <width>51</width>
+     <height>22</height>
+    </rect>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+   </property>
+   <property name="maximum">
+    <double>1.000000000000000</double>
+   </property>
+   <property name="singleStep">
+    <double>0.100000000000000</double>
    </property>
   </widget>
  </widget>
@@ -247,6 +299,22 @@
     <hint type="destinationlabel">
      <x>300</x>
      <y>103</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>maximum_length_of_side</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>minimum_length_of_side</receiver>
+   <slot>setValue(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>245</x>
+     <y>140</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>245</x>
+     <y>170</y>
     </hint>
    </hints>
   </connection>
