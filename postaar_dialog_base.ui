@@ -6,17 +6,21 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>463</width>
-    <height>352</height>
+    <width>444</width>
+    <height>351</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>postAAR - find rectangles</string>
   </property>
-  <widget class="QDialogButtonBox" name="button_box">
+  <property name="windowIcon">
+   <iconset>
+    <normaloff>icon.png</normaloff>icon.png</iconset>
+  </property>
+  <widget class="QDialogButtonBox" name="btn_ok_abort">
    <property name="geometry">
     <rect>
-     <x>20</x>
+     <x>30</x>
      <y>310</y>
      <width>391</width>
      <height>32</height>
@@ -51,23 +55,24 @@
     <string>Union[QgsMapLayerProxyModel.PointLayer] </string>
    </property>
   </widget>
-  <widget class="QLabel" name="label_cmb_Layer_selected">
+  <widget class="QLabel" name="cmb_Layer_selected_label">
    <property name="geometry">
     <rect>
      <x>20</x>
      <y>50</y>
-     <width>181</width>
-     <height>20</height>
+     <width>111</width>
+     <height>31</height>
     </rect>
    </property>
    <property name="toolTip">
     <string>Select a point layer from your map comprising the postholes and optional grouping attributes.</string>
    </property>
    <property name="text">
-    <string>Layer with postholes (point feature)</string>
+    <string>Layer with postholes 
+(point feature)</string>
    </property>
   </widget>
-  <widget class="QLabel" name="label_max_length_side">
+  <widget class="QLabel" name="maximum_length_side_label">
    <property name="geometry">
     <rect>
      <x>20</x>
@@ -83,7 +88,7 @@
     <string>maximum length of rectangle side</string>
    </property>
   </widget>
-  <widget class="QLabel" name="label_min_length_side">
+  <widget class="QLabel" name="minimum_length_side_label">
    <property name="geometry">
     <rect>
      <x>20</x>
@@ -99,7 +104,7 @@
     <string>minimum length of rectangle side</string>
    </property>
   </widget>
-  <widget class="QLabel" name="label_maximal_difference">
+  <widget class="QLabel" name="maximal_length_difference_label">
    <property name="geometry">
     <rect>
      <x>20</x>
@@ -116,42 +121,20 @@
 comparable sides (percent: 0.00 - 1.00)</string>
    </property>
   </widget>
-  <widget class="QgsFileWidget" name="file_with_rectangles">
-   <property name="geometry">
-    <rect>
-     <x>220</x>
-     <y>260</y>
-     <width>211</width>
-     <height>27</height>
-    </rect>
-   </property>
-   <property name="contextMenuPolicy">
-    <enum>Qt::DefaultContextMenu</enum>
-   </property>
-   <property name="dialogTitle">
-    <string>Save rectangles as *.shp</string>
-   </property>
-   <property name="filter">
-    <string>*.shp</string>
-   </property>
-   <property name="StorageMode" stdset="0">
-    <number>3</number>
-   </property>
-  </widget>
-  <widget class="QLabel" name="label">
+  <widget class="QLabel" name="save_outfile_label">
    <property name="geometry">
     <rect>
      <x>20</x>
-     <y>270</y>
-     <width>161</width>
-     <height>16</height>
+     <y>250</y>
+     <width>171</width>
+     <height>21</height>
     </rect>
    </property>
    <property name="text">
     <string>Save resulting rectangles as</string>
    </property>
   </widget>
-  <widget class="QLabel" name="label_cmb_post_id">
+  <widget class="QLabel" name="cmb_post_id_label">
    <property name="geometry">
     <rect>
      <x>20</x>
@@ -159,6 +142,9 @@ comparable sides (percent: 0.00 - 1.00)</string>
      <width>91</width>
      <height>16</height>
     </rect>
+   </property>
+   <property name="toolTip">
+    <string>To identify posts of a rectangle, UNIQUE is recommended</string>
    </property>
    <property name="text">
     <string>id field of post</string>
@@ -215,7 +201,7 @@ comparable sides (percent: 0.00 - 1.00)</string>
     <number>1</number>
    </property>
   </widget>
-  <widget class="QDoubleSpinBox" name="maximal_difference_between_comparable_sides_in_percent">
+  <widget class="QDoubleSpinBox" name="maximal_length_difference">
    <property name="geometry">
     <rect>
      <x>220</x>
@@ -223,6 +209,9 @@ comparable sides (percent: 0.00 - 1.00)</string>
      <width>51</width>
      <height>22</height>
     </rect>
+   </property>
+   <property name="locale">
+    <locale language="English" country="UnitedKingdom"/>
    </property>
    <property name="alignment">
     <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -232,6 +221,25 @@ comparable sides (percent: 0.00 - 1.00)</string>
    </property>
    <property name="singleStep">
     <double>0.100000000000000</double>
+   </property>
+  </widget>
+  <widget class="QgsFileWidget" name="save_outfile">
+   <property name="geometry">
+    <rect>
+     <x>19</x>
+     <y>270</y>
+     <width>401</width>
+     <height>27</height>
+    </rect>
+   </property>
+   <property name="dialogTitle">
+    <string>Save outfile</string>
+   </property>
+   <property name="filter">
+    <string>*.shp</string>
+   </property>
+   <property name="StorageMode" stdset="3">
+    <number>3</number>
    </property>
   </widget>
  </widget>
@@ -255,7 +263,7 @@ comparable sides (percent: 0.00 - 1.00)</string>
  <resources/>
  <connections>
   <connection>
-   <sender>button_box</sender>
+   <sender>btn_ok_abort</sender>
    <signal>accepted()</signal>
    <receiver>postaar_dialog_base</receiver>
    <slot>accept()</slot>
@@ -271,7 +279,7 @@ comparable sides (percent: 0.00 - 1.00)</string>
    </hints>
   </connection>
   <connection>
-   <sender>button_box</sender>
+   <sender>btn_ok_abort</sender>
    <signal>rejected()</signal>
    <receiver>postaar_dialog_base</receiver>
    <slot>reject()</slot>
@@ -302,21 +310,8 @@ comparable sides (percent: 0.00 - 1.00)</string>
     </hint>
    </hints>
   </connection>
-  <connection>
-   <sender>maximum_length_of_side</sender>
-   <signal>valueChanged(int)</signal>
-   <receiver>minimum_length_of_side</receiver>
-   <slot>setValue(int)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>245</x>
-     <y>140</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>245</x>
-     <y>170</y>
-    </hint>
-   </hints>
-  </connection>
  </connections>
+ <slots>
+  <slot>dialog_save_file()</slot>
+ </slots>
 </ui>

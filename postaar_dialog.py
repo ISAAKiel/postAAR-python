@@ -24,8 +24,11 @@
 
 import os
 
-from PyQt5 import uic
-from PyQt5 import QtWidgets
+from PyQt5 import uic, QtWidgets
+from PyQt5.QtGui import QIcon
+#from PyQt5.QtGui import QIcon, QDialogButtonBox
+from PyQt5.QtWidgets import QMessageBox
+
 
 # This loads your .ui file so that PyQt can populate your plugin with the elements from Qt Designer
 FORM_CLASS, _ = uic.loadUiType(os.path.join(
@@ -42,3 +45,64 @@ class postAARDialog(QtWidgets.QDialog, FORM_CLASS):
         # http://qt-project.org/doc/qt-4.8/designer-using-a-ui-file.html
         # #widgets-and-dialogs-with-auto-connect
         self.setupUi(self)
+        
+        self.accepted.connect(self.checkvalues)
+
+    def checkvalues(self):
+        # Input values have to be checked
+        postlayer = self.cmb_layer_selected.currentLayer()
+        postid = self.cmb_postid.currentField()
+        maximum_length_of_side = unicode(self.maximum_length_of_side.text())
+        minimum_length_of_side = unicode(self.minimum_length_of_side.text())
+        max_diff_side = unicode(self.maximal_length_difference.text())
+        results_shape = unicode(self.save_outfile.filePath())
+
+        # Layer selected?
+        msg = "Please update the data\n\n"
+        if not postlayer:
+            msg = "-  Please select (active) a Layer.\n" 
+        else:
+            if postlayer.crs().isGeographic() == True:
+                msg = "-  Layer " + postlayer.name() + " is not projected. Please choose an projected reference system. \n"
+            # geometry type is point?
+            if postlayer.geometryType() != 0:
+                msg = msg + "-  Layer " + postlayer.name() + " is not a point geometry. Please choose an point geometry.\n"
+
+        # ID field selected?
+        if not postid:
+            msg = msg + "-  Please select a ID field.\n" 
+
+        # max length >= min length
+        if maximum_length_of_side < minimum_length_of_side:
+            msg = msg + "-  Maximal length must be greater or equal to minimal length.\n"
+
+        # output file selected?
+        if results_shape == "":
+            msg = msg + "-  Please select a file for the results."
+        
+        if len(msg)>30:
+            QMessageBox.critical(self, "postAAR input dialog", msg)
+            self.show()
+            return
+
+        # the id column has unique values?
+        postslist=[]
+        for f in postlayer.getFeatures():
+            pid = f[postid]
+            postslist.append(pid)
+
+        seen = []
+        duplicates = []
+        for x in postslist:
+            if x in seen:
+                duplicates.append(x)
+            seen.append(x)
+
+        if len(duplicates) > 0:
+            msg = "Selected field "+ postid + " has duplicate values:" + str(len(duplicates))
+            msg = msg + "\nFirst duplicate value: " + str(duplicates[0])
+            msg = msg + "\n\n Press [OK] to continue [Cancel] to exit."
+            resp = QMessageBox.question(self, 'postAAR input dialog', msg, QMessageBox.Ok | QMessageBox.Cancel, QMessageBox.Ok)
+            if resp == QMessageBox.Cancel: 
+                self.show()
+                return

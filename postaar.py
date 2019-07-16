@@ -26,16 +26,17 @@ from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QAction
 from qgis.gui import QgsMessageBar
 from qgis.core import *
+from PyQt5.QtWidgets import QMessageBox
 
 # Initialize Qt resources from file resources.py
 from .resources import *
+
 # Import the code for the dialog
 from .postaar_dialog import postAARDialog
 import os.path
 
 # specific functions
-#from check import *
-#import helper as hlp
+from .helper import *
 
 
 class postAAR:
@@ -168,10 +169,10 @@ class postAAR:
     def initGui(self):
         """Create the menu entries and toolbar icons inside the QGIS GUI."""
 
-        icon_path = ':/plugins/postaar/postAAR.ico'
+        icon_path = ':/plugins/postAAR/icon.png'
         self.add_action(
             icon_path,
-            text=self.tr(u'postAAR 4 houses'),
+            text=self.tr(u'postAAR - rectangles'),
             callback=self.run,
             parent=self.iface.mainWindow())
 
@@ -190,8 +191,7 @@ class postAAR:
     def run(self):
         """Run method that performs all the real work"""
         # initialize the external functions
-        #chk = checkdata(self.iface)
-
+ 
         # Create the dialog with elements (after translation) and keep reference
         # Only create GUI ONCE in callback, so that it will only load when the plugin is started
         if self.first_start == True:
@@ -207,53 +207,67 @@ class postAAR:
         if result:
             ## Do something useful here - delete the line containing pass and
             ## substitute with your code.
-            #pass
             postlayer = self.dlg.cmb_layer_selected.currentLayer()
             postid = self.dlg.cmb_postid.currentField()
-            maximum_length_of_side = unicode(self.dlg.maximum_length_of_side.text())
-            minimum_length_of_side = unicode(self.dlg.minimum_length_of_side.text())
-            max_diff_side = unicode(self.dlg.maximal_difference_between_comparable_sides_in_percent.text())
-            results_shape = unicode(self.dlg.file_with_rectangles.filePath())
-            
-            # Input values have to be checked
-            # CRS is not geografic?
-            if postlayer.crs().isGeographic() == True:
-                self.iface.messageBar().pushMessage("Error", "Layer "+postlayer.name()+ " is not projected. Please choose an projected reference system.", level=Qgis.Warning)
-                QgsMessageLog.logMessage("Layer "+postlayer.name()+ " is not projected. Please choose an projected reference system.", 'Error_LOG')
-                return
-        
-            # geometry type is point?
-            if postlayer.geometryType() != 0:
-                self.iface.messageBar().pushMessage("Error", "Layer "+postlayer.name()+ " is not a point geometry. Please choose an point geometry.", level=Qgis.Warning)
-                QgsMessageLog.logMessage("Layer "+postlayer.name()+ " is not a point geometry. Please choose an point geometry.", 'Error_LOG')
-                return
-            
-            # this calls a function anyduplicates but module check can't be found
-            #if check.anyduplicates(postslist) == True:
-            #    self.iface.messageBar().pushMessage("Error", "Selected field "+ str(postid) + " has duplicate values.", level=QgsMessageBar.WARNING)
-            #    QgsMessageLog.logMessage("Error", "Selected field "+ str(postid) + " has duplicate values.", 'Error_LOG')
-            #    return
+            maximum_length_of_side = int(unicode(self.dlg.maximum_length_of_side.text()))
+            minimum_length_of_side = int(unicode(self.dlg.minimum_length_of_side.text()))
+            max_diff_side = float(unicode(self.dlg.maximal_length_difference.text()))
+            results_shape = unicode(self.dlg.save_outfile.filePath())
 
-            # the id column has unique values?
-            postslist=[]
-            for f in postlayer.getFeatures():
-                pid = f[postid]
-                postslist.append(pid)
+            # # Layer selected?
+            # msg = "Please update the data\n\n"
+            # if not postlayer:
+            #     msg = "-  Please select (active) a Layer.\n" 
+            # else:
+            #     if postlayer.crs().isGeographic() == True:
+            #         msg = "-  Layer " + postlayer.name() + " is not projected. Please choose an projected reference system. \n"
+            #     # geometry type is point?
+            #     if postlayer.geometryType() != 0:
+            #         msg = msg + "-  Layer " + postlayer.name() + " is not a point geometry. Please choose an point geometry.\n"
 
-            seen = []
-            for x in postslist:
-                if x in seen:
-                    self.iface.messageBar().pushMessage("Error", "Selected field "+ postid + " has duplicate value:" + str(x), level=Qgis.Warning)
-                    QgsMessageLog.logMessage("Selected field "+ postid + " has duplicate value:." + str(x), 'Error_LOG')
-                    return
-                seen.append(x)
+            # # ID field selected?
+            # if not postid:
+            #     msg = msg + "-  Please select a ID field.\n" 
+
+            # # max length >= min length
+            # if maximum_length_of_side < minimum_length_of_side:
+            #     msg = msg + "-  Maximal length must be greater or equal to minimal length.\n"
+
+            # # output file selected?
+            # if results_shape == "":
+            #     msg = msg + "-  Please select a file for the results."
+            
+            # if len(msg)>30:
+            #     QMessageBox.critical(self.iface.mainWindow(), "postAAR input dialog", msg)
+            #     self.dlg.show()
+            #     return
+
+            # # the id column has unique values?
+            # postslist=[]
+            # for f in postlayer.getFeatures():
+            #     pid = f[postid]
+            #     postslist.append(pid)
+
+            # seen = []
+            # duplicates = []
+            # for x in postslist:
+            #     if x in seen:
+            #         duplicates.append(x)
+            #     seen.append(x)
+
+            # if len(duplicates) > 0:
+            #     msg = "Selected field "+ postid + " has duplicate values:" + str(len(duplicates))
+            #     msg = msg + "\nFirst duplicate value: " + str(duplicates[0])
+            #     msg = msg + "\n\n Press [OK] to continue [Cancel] to exit."
+            #     resp = QMessageBox.question(self.iface.mainWindow(), 'postAAR input dialog', msg, QMessageBox.Ok | QMessageBox.Cancel, QMessageBox.Ok)
+            #     if resp == QMessageBox.Cancel: return
 
             # write feature id, x, y into a list
-            postslist=[]
-            for f in postlayer.getFeatures():
-                pid = f[postid]
-                x = f.geometry().asPoint().x()
-                y = f.geometry().asPoint().y()
-                postslist.append([pid, x, y])
+            # postslist=[]
+            # for f in postlayer.getFeatures():
+            #     pid = f[postid]
+            #     x = f.geometry().asPoint().x()
+            #     y = f.geometry().asPoint().y()
+            #     postslist.append([pid, x, y])
 
-
+            # equal([],[])
