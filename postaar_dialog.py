@@ -104,5 +104,5 @@ class postAARDialog(QtWidgets.QDialog, FORM_CLASS):
             msg = msg + "\n\n Press [OK] to continue [Cancel] to exit."
             resp = QMessageBox.question(self, 'postAAR input dialog', msg, QMessageBox.Ok | QMessageBox.Cancel, QMessageBox.Ok)
             if resp == QMessageBox.Cancel: 
-                self.show()
+                #self.show()
                 return

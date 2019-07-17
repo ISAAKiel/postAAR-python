@@ -11,7 +11,7 @@ def calcRectsInWindow (window, x_values, y_values, maximal_length_of_side, minim
 	maximal_length_of_side *= maximal_length_of_side
 	minimal_length_of_side *= minimal_length_of_side
 
-	distance_in_window = calcDistanceInWindow(window, x_values, y_values, squared=True)
+	distance_in_window = helper.calcDistanceInWindow(window, x_values, y_values, squared=True)
 	for a in range(len(window)):
 		for b in range(len(window)):
 			if a == b:
@@ -44,13 +44,13 @@ def calcRectsInWindow (window, x_values, y_values, maximal_length_of_side, minim
 										math.fabs((dist_ac/dist_bd)-1) < maximal_difference_between_comparable_sides_in_percent):
 										new_rect = [[window[a],window[c],window[potential_d],window[b],window[a]], 
 													[math.fabs(dist_bc/dist_ad-1)]]
-										add_to_list(new_rect,rects)
+										helper.add_to_list(new_rect,rects)
 
 						except ZeroDivisionError:
 							pass
 	return [rects]
 
-def find_rects(windows, x_values, y_values, maximal_length_of_side, minimal_length_of_side, maximal_difference_between_comparable_sides_in_percent=0.1, multicore=False, number_of_computercores=4):
+def find_rects(windows, x_values, y_values, maximal_length_of_side, minimal_length_of_side, maximal_difference_between_comparable_sides_in_percent=0.1, multicore=True, number_of_computercores=4):
 	start = time.time()
 
 	calculated_rects = []
@@ -80,7 +80,7 @@ def find_rects(windows, x_values, y_values, maximal_length_of_side, minimal_leng
 	for rects_in_window in calculated_rects:
 		print('\rConsolidating rects - {}'.format(len(found_rects)), end='')
 		for rect in rects_in_window[0]:
-			add_to_list(rect, found_rects)
+			helper.add_to_list(rect, found_rects)
 	print()
 	return found_rects
 

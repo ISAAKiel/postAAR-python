@@ -37,6 +37,10 @@ import os.path
 
 # specific functions
 from .helper import *
+from .algorythm import *
+#import .helper as hlp
+#import .algorythm as alg
+
 
 
 class postAAR:
@@ -214,60 +218,25 @@ class postAAR:
             max_diff_side = float(unicode(self.dlg.maximal_length_difference.text()))
             results_shape = unicode(self.dlg.save_outfile.filePath())
 
-            # # Layer selected?
-            # msg = "Please update the data\n\n"
-            # if not postlayer:
-            #     msg = "-  Please select (active) a Layer.\n" 
-            # else:
-            #     if postlayer.crs().isGeographic() == True:
-            #         msg = "-  Layer " + postlayer.name() + " is not projected. Please choose an projected reference system. \n"
-            #     # geometry type is point?
-            #     if postlayer.geometryType() != 0:
-            #         msg = msg + "-  Layer " + postlayer.name() + " is not a point geometry. Please choose an point geometry.\n"
-
-            # # ID field selected?
-            # if not postid:
-            #     msg = msg + "-  Please select a ID field.\n" 
-
-            # # max length >= min length
-            # if maximum_length_of_side < minimum_length_of_side:
-            #     msg = msg + "-  Maximal length must be greater or equal to minimal length.\n"
-
-            # # output file selected?
-            # if results_shape == "":
-            #     msg = msg + "-  Please select a file for the results."
-            
-            # if len(msg)>30:
-            #     QMessageBox.critical(self.iface.mainWindow(), "postAAR input dialog", msg)
-            #     self.dlg.show()
-            #     return
-
-            # # the id column has unique values?
-            # postslist=[]
-            # for f in postlayer.getFeatures():
-            #     pid = f[postid]
-            #     postslist.append(pid)
-
-            # seen = []
-            # duplicates = []
-            # for x in postslist:
-            #     if x in seen:
-            #         duplicates.append(x)
-            #     seen.append(x)
-
-            # if len(duplicates) > 0:
-            #     msg = "Selected field "+ postid + " has duplicate values:" + str(len(duplicates))
-            #     msg = msg + "\nFirst duplicate value: " + str(duplicates[0])
-            #     msg = msg + "\n\n Press [OK] to continue [Cancel] to exit."
-            #     resp = QMessageBox.question(self.iface.mainWindow(), 'postAAR input dialog', msg, QMessageBox.Ok | QMessageBox.Cancel, QMessageBox.Ok)
-            #     if resp == QMessageBox.Cancel: return
-
-            # write feature id, x, y into a list
+            # # write feature id, x, y into a list
             # postslist=[]
             # for f in postlayer.getFeatures():
             #     pid = f[postid]
             #     x = f.geometry().asPoint().x()
             #     y = f.geometry().asPoint().y()
             #     postslist.append([pid, x, y])
+            x_values = []
+            y_values = []
+            for f in postlayer.getFeatures():
+                x_values.append(f.geometry().asPoint().x())
+                y_values.append(f.geometry().asPoint().y())
 
-            # equal([],[])
+            windows = buildWindows(x_values, y_values, min(x_values) - 1, max(x_values) + 1, min(y_values) - 1, max(y_values) + 1, maximum_length_of_side)
+
+            found_rects = find_rects(windows, x_values, y_values, maximum_length_of_side, minimum_length_of_side, max_diff_side) #,  number_of_computercores=number_of_computercores)
+                
+            buildings = findBuildings(found_rects, x_values, y_values)
+            buildings.sort(key=lambda l : len(l), reverse=True)
+
+            msg = str(len(buildings))
+            QMessageBox.critical(None, "Testen", msg)
