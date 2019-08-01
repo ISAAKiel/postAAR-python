@@ -21,12 +21,12 @@
  *                                                                         *
  ***************************************************************************/
 """
-from PyQt5.QtCore import QSettings, QTranslator, qVersion, QCoreApplication
+from PyQt5.QtCore import QSettings, QTranslator, qVersion, QCoreApplication, QVariant
 from PyQt5.QtGui import QIcon
-from PyQt5.QtWidgets import QAction
-from qgis.gui import QgsMessageBar
+from PyQt5.QtWidgets import QAction, QMessageBox 
 from qgis.core import *
-from PyQt5.QtWidgets import QMessageBox
+from qgis.gui import QgsMessageBar
+from qgis.utils import iface
 
 # Initialize Qt resources from file resources.py
 from .resources import *
@@ -212,24 +212,25 @@ class postAAR:
             ## Do something useful here - delete the line containing pass and
             ## substitute with your code.
             postlayer = self.dlg.cmb_layer_selected.currentLayer()
+            postlayer_crs = postlayer.crs().authid()
             postid = self.dlg.cmb_postid.currentField()
             maximum_length_of_side = int(unicode(self.dlg.maximum_length_of_side.text()))
             minimum_length_of_side = int(unicode(self.dlg.minimum_length_of_side.text()))
             max_diff_side = float(unicode(self.dlg.maximal_length_difference.text()))
             results_shape = unicode(self.dlg.save_outfile.filePath())
 
-            # # write feature id, x, y into a list
-            # postslist=[]
-            # for f in postlayer.getFeatures():
-            #     pid = f[postid]
-            #     x = f.geometry().asPoint().x()
-            #     y = f.geometry().asPoint().y()
-            #     postslist.append([pid, x, y])
+            # write feature id, x, y into a general base list to secure order of the features
+            postslist=[]
+            for f in postlayer.getFeatures():
+                pid = f[postid]
+                x = f.geometry().asPoint().x()
+                y = f.geometry().asPoint().y()
+                postslist.append([pid, x, y])
             x_values = []
             y_values = []
-            for f in postlayer.getFeatures():
-                x_values.append(f.geometry().asPoint().x())
-                y_values.append(f.geometry().asPoint().y())
+            for p in postslist:
+                x_values.append(p[1])
+                y_values.append(p[2])
 
             windows = buildWindows(x_values, y_values, min(x_values) - 1, max(x_values) + 1, min(y_values) - 1, max(y_values) + 1, maximum_length_of_side)
 
@@ -238,5 +239,42 @@ class postAAR:
             buildings = findBuildings(found_rects, x_values, y_values)
             buildings.sort(key=lambda l : len(l), reverse=True)
 
-            msg = str(len(buildings))
-            QMessageBox.critical(None, "Testen", msg)
+            msg = "rectangles found: " + str(len(found_rects)) + "\n" + "buildings found: " + str(len(buildings))
+            
+            QMessageBox.information(None, "postAAR", msg)
+            #print (str(found_rects[0]))
+            #print (str(buildings[0]))
+
+            # Creat results layer in memory
+            results_layer = iface.addVectorLayer("Polygon?crs="+postlayer_crs, "found_rectangles", "memory")
+            # if the loading of the layer fails, give a message
+            if not results_layer:
+                criticalMessageToBar(self, 'Error', 'Failed to load the file '+ results_shape)
+            # add basic attributes
+            pr = results_layer.dataProvider()
+            pr.addAttributes([QgsField("ID", QVariant.String), 
+                                QgsField("PostIDs", QVariant.String), 
+                                QgsField("max_diff_sides", QVariant.Double)])
+            results_layer.updateFields()
+            # add the rectangles by a point list build first
+            i=0
+            for r in found_rects:
+                #print(r)
+                i=i+1
+                listPoints = []
+                PIDs = ""
+                plist = r[0]
+                #print (plist)
+                for p in plist[:4]:
+                    listPoints.append(QgsPointXY(x_values[p], y_values[p]))
+                    print(listPoints)
+                    PIDs = PIDs + str(postslist[p][0]) + "-"
+                max_diff_side_rectangle = r[1]
+
+                fet = QgsFeature()
+                fet.setGeometry(QgsGeometry.fromPolygonXY ([listPoints]))
+                fet.setAttributes([1, PIDs, max_diff_side_rectangle])
+                pr = results_layer.dataProvider()
+                pr.addFatures([fet])
+                results_layer.updateExtends()
+

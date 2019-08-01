@@ -25,7 +25,7 @@
 import os
 
 from PyQt5 import uic, QtWidgets
-from PyQt5.QtGui import QIcon
+#from PyQt5.QtGui import QIcon
 #from PyQt5.QtGui import QIcon, QDialogButtonBox
 from PyQt5.QtWidgets import QMessageBox
 
@@ -55,7 +55,7 @@ class postAARDialog(QtWidgets.QDialog, FORM_CLASS):
         maximum_length_of_side = unicode(self.maximum_length_of_side.text())
         minimum_length_of_side = unicode(self.minimum_length_of_side.text())
         max_diff_side = unicode(self.maximal_length_difference.text())
-        results_shape = unicode(self.save_outfile.filePath())
+        #results_shape = unicode(self.save_outfile.filePath())
 
         # Layer selected?
         msg = "Please update the data\n\n"
@@ -76,9 +76,9 @@ class postAARDialog(QtWidgets.QDialog, FORM_CLASS):
         if maximum_length_of_side < minimum_length_of_side:
             msg = msg + "-  Maximal length must be greater or equal to minimal length.\n"
 
-        # output file selected?
-        if results_shape == "":
-            msg = msg + "-  Please select a file for the results."
+        # # output file selected?
+        # if results_shape == "":
+        #     msg = msg + "-  Please select a file for the results."
         
         if len(msg)>30:
             QMessageBox.critical(self, "postAAR input dialog", msg)

@@ -1,4 +1,4 @@
-	xKooFuss_d	yKooFuss_d	Formcode	Ra_Di_cm	Breit_cm	Objekt	Kopf_LV95_	Kopf_LV951	Fuss_LV95_	Fuss_LV951	AnzJR_Best	Mark_Best	WK_Best	Splint_Bes	Art_Best	DcEign	DmRek	mindDM	LabNr	Dat	Gte	DG	x	y
+id	xKooFuss_d	yKooFuss_d	Formcode	Ra_Di_cm	Breit_cm	Objekt	Kopf_LV95_	Kopf_LV951	Fuss_LV95_	Fuss_LV951	AnzJR_Best	Mark_Best	WK_Best	Splint_Bes	Art_Best	DcEign	DmRek	mindDM	LabNr	Dat	Gte	DG	x	y
 20903.00000000000	477.53	159.78	1.00	12.50	9.50	P			2683665.99	1246678.11	0.00		3	1.00	1	1	24.00		657507	-3175	a	20	2683665.99	1246678.11
 27002.00000000000	487.42	122.24	1.00	15.00	11.00	P			2683691.70	1246649.01	0.00		3	1.00	1	1	25.00		656273	-3176	a	12	2683691.70	1246649.01
 7495.00000000000	507.95	171.83	1.00	2.50	4.00	P			2683687.77	1246702.54	18.00		4	0.00	5	4	0.00						2683687.77	1246702.54
