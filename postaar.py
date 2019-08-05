@@ -217,7 +217,6 @@ class postAAR:
             maximum_length_of_side = int(unicode(self.dlg.maximum_length_of_side.text()))
             minimum_length_of_side = int(unicode(self.dlg.minimum_length_of_side.text()))
             max_diff_side = float(unicode(self.dlg.maximal_length_difference.text()))
-            results_shape = unicode(self.dlg.save_outfile.filePath())
 
             # write feature id, x, y into a general base list to secure order of the features
             postslist=[]
@@ -240,10 +239,7 @@ class postAAR:
             buildings.sort(key=lambda l : len(l), reverse=True)
 
             msg = "rectangles found: " + str(len(found_rects)) + "\n" + "buildings found: " + str(len(buildings))
-            
             QMessageBox.information(None, "postAAR", msg)
-            #print (str(found_rects[0]))
-            #print (str(buildings[0]))
 
             # Creat results layer in memory
             results_layer = iface.addVectorLayer("Polygon?crs="+postlayer_crs, "found_rectangles", "memory")
@@ -267,14 +263,14 @@ class postAAR:
                 #print (plist)
                 for p in plist[:4]:
                     listPoints.append(QgsPointXY(x_values[p], y_values[p]))
-                    print(listPoints)
+                    #print(listPoints)
                     PIDs = PIDs + str(postslist[p][0]) + "-"
-                max_diff_side_rectangle = r[1]
+                max_diff_side_rectangle = r[1][0]
 
                 fet = QgsFeature()
                 fet.setGeometry(QgsGeometry.fromPolygonXY ([listPoints]))
-                fet.setAttributes([1, PIDs, max_diff_side_rectangle])
-                pr = results_layer.dataProvider()
-                pr.addFatures([fet])
-                results_layer.updateExtends()
+                print([i, PIDs, max_diff_side_rectangle])
+                fet.setAttributes([i, PIDs, max_diff_side_rectangle])
+                pr.addFeatures([fet])
+                #results_layer.updateExtent()
 

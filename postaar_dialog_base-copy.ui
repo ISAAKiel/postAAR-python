@@ -126,12 +126,12 @@ comparable sides (percent: 0.00 - 1.00)</string>
     <rect>
      <x>20</x>
      <y>250</y>
-     <width>311</width>
+     <width>171</width>
      <height>21</height>
     </rect>
    </property>
    <property name="text">
-    <string>Results will be written into the memory</string>
+    <string>Save resulting rectangles as</string>
    </property>
   </widget>
   <widget class="QLabel" name="cmb_post_id_label">
@@ -223,12 +223,36 @@ comparable sides (percent: 0.00 - 1.00)</string>
     <double>0.100000000000000</double>
    </property>
   </widget>
+  <widget class="QgsFileWidget" name="save_outfile">
+   <property name="geometry">
+    <rect>
+     <x>19</x>
+     <y>270</y>
+     <width>401</width>
+     <height>27</height>
+    </rect>
+   </property>
+   <property name="dialogTitle">
+    <string>Save outfile</string>
+   </property>
+   <property name="filter">
+    <string>*.shp</string>
+   </property>
+   <property name="StorageMode" stdset="3">
+    <number>3</number>
+   </property>
+  </widget>
  </widget>
  <customwidgets>
   <customwidget>
    <class>QgsFieldComboBox</class>
    <extends>QComboBox</extends>
    <header>qgsfieldcombobox.h</header>
+  </customwidget>
+  <customwidget>
+   <class>QgsFileWidget</class>
+   <extends>QWidget</extends>
+   <header>qgsfilewidget.h</header>
   </customwidget>
   <customwidget>
    <class>QgsMapLayerComboBox</class>
