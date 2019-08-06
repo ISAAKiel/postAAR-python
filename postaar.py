@@ -209,8 +209,7 @@ class postAAR:
         result = self.dlg.exec_()
         # See if OK was pressed
         if result:
-            ## Do something useful here - delete the line containing pass and
-            ## substitute with your code.
+            ## Get info from the form
             postlayer = self.dlg.cmb_layer_selected.currentLayer()
             postlayer_crs = postlayer.crs().authid()
             postid = self.dlg.cmb_postid.currentField()
@@ -218,7 +217,8 @@ class postAAR:
             minimum_length_of_side = int(unicode(self.dlg.minimum_length_of_side.text()))
             max_diff_side = float(unicode(self.dlg.maximal_length_difference.text()))
 
-            # write feature id, x, y into a general base list to secure order of the features
+            # write feature id, x, y into a general base list 
+            # to secure the order of the features and get coordinate lists
             postslist=[]
             for f in postlayer.getFeatures():
                 pid = f[postid]
@@ -231,16 +231,23 @@ class postAAR:
                 x_values.append(p[1])
                 y_values.append(p[2])
 
+            ########################################
+            # Do the calculation by call the functions from algorithm.py
             windows = buildWindows(x_values, y_values, min(x_values) - 1, max(x_values) + 1, min(y_values) - 1, max(y_values) + 1, maximum_length_of_side)
 
             found_rects = find_rects(windows, x_values, y_values, maximum_length_of_side, minimum_length_of_side, max_diff_side) #,  number_of_computercores=number_of_computercores)
+            #print (found_rects)
                 
             buildings = findBuildings(found_rects, x_values, y_values)
             buildings.sort(key=lambda l : len(l), reverse=True)
+            print (buildings)
 
             msg = "rectangles found: " + str(len(found_rects)) + "\n" + "buildings found: " + str(len(buildings))
             QMessageBox.information(None, "postAAR", msg)
-
+			
+            ###############################
+            # Plot results
+            # 1. add rectangles
             # Creat results layer in memory
             results_layer = iface.addVectorLayer("Polygon?crs="+postlayer_crs, "found_rectangles", "memory")
             # if the loading of the layer fails, give a message
@@ -269,8 +276,45 @@ class postAAR:
 
                 fet = QgsFeature()
                 fet.setGeometry(QgsGeometry.fromPolygonXY ([listPoints]))
-                print([i, PIDs, max_diff_side_rectangle])
+                #print([i, PIDs, max_diff_side_rectangle])
                 fet.setAttributes([i, PIDs, max_diff_side_rectangle])
                 pr.addFeatures([fet])
                 #results_layer.updateExtent()
+            ########################################
+            # 2. add buildungs = connected rectangles
+            # Creat results layer in memory
+            results_layer = iface.addVectorLayer("Polygon?crs="+postlayer_crs, "found_buildings", "memory")
+            # if the loading of the layer fails, give a message
+            if not results_layer:
+                criticalMessageToBar(self, 'Error', 'Failed to load the file '+ results_shape)
+            # add basic attributes
+            pr = results_layer.dataProvider()
+            pr.addAttributes([QgsField("ID", QVariant.String), 
+                                QgsField("PostIDs", QVariant.String), 
+                                QgsField("mean_max_diff_sides", QVariant.Double)],
+								QgsField("count_rectangles",QVariant.Int)
+            results_layer.updateFields()
+            # add the rectangles by a point list build first
+            i=0
+            for b in buildings:
+                i=i+1
+                #print(b)
+                PIDs = ""
+				for r in b
+                    #print(r)
+                    listPoints = []
+                    plist = r[0]
+                    #print (plist)
+                    # ab hier Baustelle: Idee ist <geom>.GetEnvelope() von Punktliste
+                    for p in plist[:4]:
+                        listPoints.append(QgsPointXY(x_values[p], y_values[p]))
+                        #print(listPoints)
+                        PIDs = PIDs + str(postslist[p][0]) + "-"
+                    max_diff_side_rectangle = r[1][0]
 
+                    fet = QgsFeature()
+                    fet.setGeometry(QgsGeometry.fromPolygonXY ([listPoints]))
+                    #print([i, PIDs, max_diff_side_rectangle])
+                    fet.setAttributes([i, PIDs, max_diff_side_rectangle])
+                    pr.addFeatures([fet])
+                    #results_layer.updateExtent()

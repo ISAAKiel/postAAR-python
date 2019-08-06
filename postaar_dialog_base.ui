@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
+ <author>CR</author>
  <class>postaar_dialog_base</class>
  <widget class="QDialog" name="postaar_dialog_base">
   <property name="geometry">
@@ -25,6 +26,9 @@
      <width>391</width>
      <height>32</height>
     </rect>
+   </property>
+   <property name="locale">
+    <locale language="German" country="Germany"/>
    </property>
    <property name="orientation">
     <enum>Qt::Horizontal</enum>
@@ -67,6 +71,9 @@
    <property name="toolTip">
     <string>Select a point layer from your map comprising the postholes and optional grouping attributes.</string>
    </property>
+   <property name="locale">
+    <locale language="English" country="UnitedKingdom"/>
+   </property>
    <property name="text">
     <string>Layer with postholes 
 (point feature)</string>
@@ -84,6 +91,9 @@
    <property name="toolTip">
     <string>Maximum lenght of a side of the rectangles to be found (map units).</string>
    </property>
+   <property name="locale">
+    <locale language="English" country="UnitedKingdom"/>
+   </property>
    <property name="text">
     <string>maximum length of rectangle side</string>
    </property>
@@ -100,6 +110,9 @@
    <property name="toolTip">
     <string>Minimum lenght of a side of the rectangles to be found (map units).</string>
    </property>
+   <property name="locale">
+    <locale language="English" country="UnitedKingdom"/>
+   </property>
    <property name="text">
     <string>minimum length of rectangle side</string>
    </property>
@@ -114,11 +127,14 @@
     </rect>
    </property>
    <property name="toolTip">
-    <string>Opposite sides of the rectangle should not differ more than the given value. Percent in 0.00 - 1.00</string>
+    <string>Opposite sides of the rectangle should not differ more than the given value. Percent in 0.00 - 0.20</string>
+   </property>
+   <property name="locale">
+    <locale language="English" country="UnitedKingdom"/>
    </property>
    <property name="text">
     <string>maximal difference between 
-comparable sides (percent: 0.00 - 1.00)</string>
+comparable sides (percent: 0.00 - 0.20)</string>
    </property>
   </widget>
   <widget class="QLabel" name="save_outfile_label">
@@ -129,6 +145,9 @@ comparable sides (percent: 0.00 - 1.00)</string>
      <width>311</width>
      <height>21</height>
     </rect>
+   </property>
+   <property name="locale">
+    <locale language="English" country="UnitedKingdom"/>
    </property>
    <property name="text">
     <string>Results will be written into the memory</string>
@@ -145,6 +164,9 @@ comparable sides (percent: 0.00 - 1.00)</string>
    </property>
    <property name="toolTip">
     <string>To identify posts of a rectangle, UNIQUE is recommended</string>
+   </property>
+   <property name="locale">
+    <locale language="English" country="UnitedKingdom"/>
    </property>
    <property name="text">
     <string>id field of post</string>
@@ -163,12 +185,12 @@ comparable sides (percent: 0.00 - 1.00)</string>
     <number>1</number>
    </property>
   </widget>
-  <widget class="QSpinBox" name="maximum_length_of_side">
+  <widget class="QDoubleSpinBox" name="maximum_length_of_side">
    <property name="geometry">
     <rect>
      <x>220</x>
      <y>130</y>
-     <width>51</width>
+     <width>71</width>
      <height>22</height>
     </rect>
    </property>
@@ -178,27 +200,45 @@ comparable sides (percent: 0.00 - 1.00)</string>
    <property name="layoutDirection">
     <enum>Qt::LeftToRight</enum>
    </property>
+   <property name="locale">
+    <locale language="English" country="UnitedKingdom"/>
+   </property>
    <property name="alignment">
     <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
    </property>
-   <property name="minimum">
-    <number>1</number>
+   <property name="maximum">
+    <double>199.990000000000009</double>
+   </property>
+   <property name="singleStep">
+    <double>0.500000000000000</double>
+   </property>
+   <property name="value">
+    <double>2.000000000000000</double>
    </property>
   </widget>
-  <widget class="QSpinBox" name="minimum_length_of_side">
+  <widget class="QDoubleSpinBox" name="minimum_length_of_side">
    <property name="geometry">
     <rect>
      <x>220</x>
      <y>160</y>
-     <width>51</width>
+     <width>71</width>
      <height>22</height>
     </rect>
+   </property>
+   <property name="locale">
+    <locale language="English" country="UnitedKingdom"/>
    </property>
    <property name="alignment">
     <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
    </property>
-   <property name="minimum">
-    <number>1</number>
+   <property name="maximum">
+    <double>199.990000000000009</double>
+   </property>
+   <property name="singleStep">
+    <double>0.500000000000000</double>
+   </property>
+   <property name="value">
+    <double>1.000000000000000</double>
    </property>
   </widget>
   <widget class="QDoubleSpinBox" name="maximal_length_difference">
@@ -216,11 +256,17 @@ comparable sides (percent: 0.00 - 1.00)</string>
    <property name="alignment">
     <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
    </property>
+   <property name="minimum">
+    <double>0.000000000000000</double>
+   </property>
    <property name="maximum">
-    <double>1.000000000000000</double>
+    <double>0.200000000000000</double>
    </property>
    <property name="singleStep">
-    <double>0.100000000000000</double>
+    <double>0.010000000000000</double>
+   </property>
+   <property name="value">
+    <double>0.050000000000000</double>
    </property>
   </widget>
  </widget>
