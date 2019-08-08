@@ -236,85 +236,104 @@ class postAAR:
             windows = buildWindows(x_values, y_values, min(x_values) - 1, max(x_values) + 1, min(y_values) - 1, max(y_values) + 1, maximum_length_of_side)
 
             found_rects = find_rects(windows, x_values, y_values, maximum_length_of_side, minimum_length_of_side, max_diff_side) #,  number_of_computercores=number_of_computercores)
+            count_rects = 0
+            for rect in found_rects:
+                count_rects += 1
+                rect.append(count_rects)
             #print (found_rects)
                 
             buildings = findBuildings(found_rects, x_values, y_values)
             buildings.sort(key=lambda l : len(l), reverse=True)
-            print (buildings)
+            #print (buildings)
 
             msg = "rectangles found: " + str(len(found_rects)) + "\n" + "buildings found: " + str(len(buildings))
             QMessageBox.information(None, "postAAR", msg)
-			
+
             ###############################
             # Plot results
             # 1. add rectangles
-            # Creat results layer in memory
-            results_layer = iface.addVectorLayer("Polygon?crs="+postlayer_crs, "found_rectangles", "memory")
-            # if the loading of the layer fails, give a message
-            if not results_layer:
-                criticalMessageToBar(self, 'Error', 'Failed to load the file '+ results_shape)
-            # add basic attributes
-            pr = results_layer.dataProvider()
-            pr.addAttributes([QgsField("ID", QVariant.String), 
-                                QgsField("PostIDs", QVariant.String), 
-                                QgsField("max_diff_sides", QVariant.Double)])
-            results_layer.updateFields()
-            # add the rectangles by a point list build first
-            i=0
-            for r in found_rects:
-                #print(r)
-                i=i+1
-                listPoints = []
-                PIDs = ""
-                plist = r[0]
-                #print (plist)
-                for p in plist[:4]:
-                    listPoints.append(QgsPointXY(x_values[p], y_values[p]))
-                    #print(listPoints)
-                    PIDs = PIDs + str(postslist[p][0]) + "-"
-                max_diff_side_rectangle = r[1][0]
-
-                fet = QgsFeature()
-                fet.setGeometry(QgsGeometry.fromPolygonXY ([listPoints]))
-                #print([i, PIDs, max_diff_side_rectangle])
-                fet.setAttributes([i, PIDs, max_diff_side_rectangle])
-                pr.addFeatures([fet])
-                #results_layer.updateExtent()
-            ########################################
-            # 2. add buildungs = connected rectangles
-            # Creat results layer in memory
-            results_layer = iface.addVectorLayer("Polygon?crs="+postlayer_crs, "found_buildings", "memory")
-            # if the loading of the layer fails, give a message
-            if not results_layer:
-                criticalMessageToBar(self, 'Error', 'Failed to load the file '+ results_shape)
-            # add basic attributes
-            pr = results_layer.dataProvider()
-            pr.addAttributes([QgsField("ID", QVariant.String), 
-                                QgsField("PostIDs", QVariant.String), 
-                                QgsField("mean_max_diff_sides", QVariant.Double)],
-								QgsField("count_rectangles",QVariant.Int)
-            results_layer.updateFields()
-            # add the rectangles by a point list build first
-            i=0
-            for b in buildings:
-                i=i+1
-                #print(b)
-                PIDs = ""
-				for r in b
+            if len(found_rects) > 0:
+                # Creat results layer in memory
+                results_layer = iface.addVectorLayer("Polygon?crs="+postlayer_crs, "found_rectangles", "memory")
+                # if the loading of the layer fails, give a message
+                if not results_layer:
+                    criticalMessageToBar(self, 'Error', 'Failed to load the file '+ results_shape)
+                # add basic attributes
+                pr = results_layer.dataProvider()
+                pr.addAttributes([QgsField("rect_ID", QVariant.String), 
+                                    QgsField("PostIDs", QVariant.String), 
+                                    QgsField("max_diff_sides", QVariant.Double)])
+                results_layer.updateFields()
+                # add the rectangles by a point list build first
+                for r in found_rects:
                     #print(r)
-                    listPoints = []
-                    plist = r[0]
+                    listPoints = [] # Points for geometry
+                    PIDs = [] # list of point ID's
+                    plist = r[0] # list of the point ID's from calculation
                     #print (plist)
-                    # ab hier Baustelle: Idee ist <geom>.GetEnvelope() von Punktliste
                     for p in plist[:4]:
                         listPoints.append(QgsPointXY(x_values[p], y_values[p]))
                         #print(listPoints)
-                        PIDs = PIDs + str(postslist[p][0]) + "-"
+                        PIDs.append(postslist[p][0])
                     max_diff_side_rectangle = r[1][0]
-
+                    rect_ID = r[2]
+                    # build geometry
                     fet = QgsFeature()
                     fet.setGeometry(QgsGeometry.fromPolygonXY ([listPoints]))
-                    #print([i, PIDs, max_diff_side_rectangle])
-                    fet.setAttributes([i, PIDs, max_diff_side_rectangle])
+                    fet.setAttributes([rect_ID, str(PIDs)[1:-1], max_diff_side_rectangle])
                     pr.addFeatures([fet])
                     #results_layer.updateExtent()
+            else:
+                return    
+
+            ########################################
+            # 2. add buildungs = connected rectangles
+            if len(buildings) > 0:
+                # Creat results layer in memory
+                results_layer = iface.addVectorLayer("Polygon?crs="+postlayer_crs, "found_buildings", "memory")
+                # if the loading of the layer fails, give a message
+                if not results_layer:
+                    criticalMessageToBar(self, 'Error', 'Failed to load the file '+ results_shape)
+                # add basic attributes
+                pr = results_layer.dataProvider()
+                pr.addAttributes([QgsField("PostIDs", QVariant.String),
+                                    QgsField("rectan_IDs", QVariant.String),
+                                    QgsField("count_rectangles",QVariant.Int),
+                                    QgsField("mean_max_diff_sides", QVariant.Double)])
+                results_layer.updateFields()
+                for b in buildings:
+                    #print(b)
+                    PIDs = []
+                    rectan_IDs = []
+                    diff_side_rectangles = []
+                    geom = QgsGeometry()
+                    for r in b:
+                        #print(r)
+                        listPoints = []
+                        plist = r[0]
+                        #print (plist)
+                        for p in plist[:4]:
+                            listPoints.append(QgsPointXY(x_values[p], y_values[p]))
+                            #print(listPoints)
+                            PIDs.append (postslist[p][0])
+                        rectan_IDs.append(r[2])
+                        diff_side_rectangles.append(r[1][0])
+                        print(QgsGeometry.fromPolygonXY ([listPoints]).asWkt())
+                        if geom:
+                            geom.combine(QgsGeometry.fromPolygonXY ([listPoints]))
+                            print(geom.validateGeometry())
+                        else:
+                            geom=QgsGeometry.fromPolygonXY ([listPoints])
+                            print(geom.validateGeometry())
+                            print("WKT")
+                            print(geom.asWkt())
+
+                    PIDs = str(set(PIDs))[1:-1]
+                    rectan_IDs =str(rectan_IDs)[1:-1]
+                    count_rectangles = len(b)
+                    mean_max_diff_sides = sum(diff_side_rectangles)/len(diff_side_rectangles)
+
+                    fet = QgsFeature()
+                    fet.setGeometry(geom)
+                    fet.setAttributes([PIDs, rectan_IDs, count_rectangles, max_diff_side_rectangle])
+                    pr.addFeatures([fet])
