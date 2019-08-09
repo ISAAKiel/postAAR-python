@@ -301,12 +301,13 @@ class postAAR:
                                     QgsField("count_rectangles",QVariant.Int),
                                     QgsField("mean_max_diff_sides", QVariant.Double)])
                 results_layer.updateFields()
+                #get the pointlist of the rectangle for the geom and collect data
                 for b in buildings:
                     #print(b)
                     PIDs = []
                     rectan_IDs = []
                     diff_side_rectangles = []
-                    geom = QgsGeometry()
+                    rectangles_geom = []
                     for r in b:
                         #print(r)
                         listPoints = []
@@ -318,22 +319,18 @@ class postAAR:
                             PIDs.append (postslist[p][0])
                         rectan_IDs.append(r[2])
                         diff_side_rectangles.append(r[1][0])
-                        print(QgsGeometry.fromPolygonXY ([listPoints]).asWkt())
-                        if geom:
-                            geom.combine(QgsGeometry.fromPolygonXY ([listPoints]))
-                            print(geom.validateGeometry())
-                        else:
-                            geom=QgsGeometry.fromPolygonXY ([listPoints])
-                            print(geom.validateGeometry())
-                            print("WKT")
-                            print(geom.asWkt())
-
+                        rectangles_geom.append(QgsGeometry.fromPolygonXY ([listPoints]))
+                    #combine the individual rectangles to one geom 
+                    building_geom = rectangles_geom[0]
+                    for rectan in rectangles_geom:
+                        building_geom = building_geom.combine(rectan)
+                    # aggregate the attributes of the building
                     PIDs = str(set(PIDs))[1:-1]
                     rectan_IDs =str(rectan_IDs)[1:-1]
                     count_rectangles = len(b)
                     mean_max_diff_sides = sum(diff_side_rectangles)/len(diff_side_rectangles)
-
+                    # create building feature 
                     fet = QgsFeature()
-                    fet.setGeometry(geom)
+                    fet.setGeometry(building_geom)
                     fet.setAttributes([PIDs, rectan_IDs, count_rectangles, max_diff_side_rectangle])
                     pr.addFeatures([fet])
