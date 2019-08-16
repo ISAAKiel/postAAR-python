@@ -45,8 +45,16 @@ class postAARDialog(QtWidgets.QDialog, FORM_CLASS):
         # http://qt-project.org/doc/qt-4.8/designer-using-a-ui-file.html
         # #widgets-and-dialogs-with-auto-connect
         self.setupUi(self)
+    
+    def accept ( self ):
+        validInput = self.checkvalues()
+        if validInput:
+            self.done ( 1 )
         
-        self.accepted.connect(self.checkvalues)
+        # self.accepted.connect(self.checkvalues)
+        # if self.checkvalues == 0:
+        #     print('checkvalues: ' + str(checkvalues))
+        #     self = 0
 
     def checkvalues(self):
         # Input values have to be checked
@@ -76,14 +84,9 @@ class postAARDialog(QtWidgets.QDialog, FORM_CLASS):
         if maximum_length_of_side < minimum_length_of_side:
             msg = msg + "-  Maximal length must be greater or equal to minimal length.\n"
 
-        # # output file selected?
-        # if results_shape == "":
-        #     msg = msg + "-  Please select a file for the results."
-        
         if len(msg)>30:
             QMessageBox.critical(self, "postAAR input dialog", msg)
-            self.show()
-            return
+            return False
 
         # the id column has unique values?
         postslist=[]
@@ -103,6 +106,6 @@ class postAARDialog(QtWidgets.QDialog, FORM_CLASS):
             msg = msg + "\nFirst duplicate value: " + str(duplicates[0])
             msg = msg + "\n\n Press [OK] to continue [Cancel] to exit."
             resp = QMessageBox.question(self, 'postAAR input dialog', msg, QMessageBox.Ok | QMessageBox.Cancel, QMessageBox.Ok)
-            if resp == QMessageBox.Cancel: 
-                #self.show()
-                return
+            if resp != 1024:
+                return False
+        return True

@@ -25,7 +25,7 @@ from PyQt5.QtCore import QSettings, QTranslator, qVersion, QCoreApplication, QVa
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QAction, QMessageBox 
 from qgis.core import *
-from qgis.gui import QgsMessageBar
+#from qgis.gui import QgsMessageBar
 from qgis.utils import iface
 
 # Initialize Qt resources from file resources.py
@@ -40,6 +40,7 @@ from .helper import *
 from .algorythm import *
 #import .helper as hlp
 #import .algorythm as alg
+import webbrowser
 
 
 
@@ -145,7 +146,6 @@ class postAAR:
             added to self.actions list.
         :rtype: QAction
         """
-
         icon = QIcon(icon_path)
         action = QAction(icon, text, parent)
         action.triggered.connect(callback)
@@ -207,8 +207,10 @@ class postAAR:
         
         # Run the dialog event loop
         result = self.dlg.exec_()
+        print('result ergebnis von gui')
+        print(str(result))
         # See if OK was pressed
-        if result:
+        if result==1:
             ## Get info from the form
             postlayer = self.dlg.cmb_layer_selected.currentLayer()
             postlayer_crs = postlayer.crs().authid()
