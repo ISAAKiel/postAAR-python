@@ -25,7 +25,7 @@ from PyQt5.QtCore import QSettings, QTranslator, qVersion, QCoreApplication, QVa
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QAction, QMessageBox 
 from qgis.core import *
-#from qgis.gui import QgsMessageBar
+from qgis.gui import QgsMessageBar
 from qgis.utils import iface
 
 # Initialize Qt resources from file resources.py
@@ -207,20 +207,20 @@ class postAAR:
         
         # Run the dialog event loop
         result = self.dlg.exec_()
-        print('result ergebnis von gui')
-        print(str(result))
         # See if OK was pressed
         if result==1:
             ## Get info from the form
             postlayer = self.dlg.cmb_layer_selected.currentLayer()
             postlayer_crs = postlayer.crs().authid()
             postid = self.dlg.cmb_postid.currentField()
-            maximum_length_of_side = int(unicode(self.dlg.maximum_length_of_side.text()))
-            minimum_length_of_side = int(unicode(self.dlg.minimum_length_of_side.text()))
+            maximum_length_of_side = float(unicode(self.dlg.maximum_length_of_side.text()))
+            minimum_length_of_side = float(unicode(self.dlg.minimum_length_of_side.text()))
             max_diff_side = float(unicode(self.dlg.maximal_length_difference.text()))
 
             # write feature id, x, y into a general base list 
             # to secure the order of the features and get coordinate lists
+            iface.messageBar().pushMessage("Info", "Loading data", level=Qgis.Info)
+
             postslist=[]
             for f in postlayer.getFeatures():
                 pid = f[postid]
@@ -235,8 +235,10 @@ class postAAR:
 
             ########################################
             # Do the calculation by call the functions from algorithm.py
+            iface.messageBar().pushMessage("Info", "Building windows", level=Qgis.Info)
             windows = buildWindows(x_values, y_values, min(x_values) - 1, max(x_values) + 1, min(y_values) - 1, max(y_values) + 1, maximum_length_of_side)
 
+            iface.messageBar().pushMessage("Info", "Finding rectangles", level=Qgis.Info, duration=3)
             found_rects = find_rects(windows, x_values, y_values, maximum_length_of_side, minimum_length_of_side, max_diff_side) #,  number_of_computercores=number_of_computercores)
             count_rects = 0
             for rect in found_rects:
@@ -244,6 +246,7 @@ class postAAR:
                 rect.append(count_rects)
             #print (found_rects)
                 
+            iface.messageBar().pushMessage("Info", "Finding buildings", level=Qgis.Info)
             buildings = findBuildings(found_rects, x_values, y_values)
             buildings.sort(key=lambda l : len(l), reverse=True)
             #print (buildings)
