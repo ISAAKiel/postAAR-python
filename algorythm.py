@@ -2,6 +2,7 @@ import time
 import math
 from multiprocessing import Pool
 from shapely.geometry import Polygon
+#from qgis.core import QgsMessageLog
 
 from .helper import * 
 
@@ -67,6 +68,8 @@ def find_rects(windows, x_values, y_values, maximal_length_of_side, minimal_leng
             
             current_calculated_windows += 1
             print('\rCalculating rects {:3d}% - ({:3.3f}s)'.format(int(current_calculated_windows/len(windows)*100), (time.time()-start)), end='', flush=True)
+#            info2user='Calculating rects {:3d}% - ({:3.3f}s)'.format(int(current_calculated_windows/len(windows)*100), (time.time()-start))
+#            QgsMessageLog.logMessage(info2user, "Dataprocessing")
     else:
         current_calculated_windows = 0
         for w in windows:

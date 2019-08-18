@@ -251,7 +251,7 @@ class postAAR:
             buildings.sort(key=lambda l : len(l), reverse=True)
             #print (buildings)
 
-            msg = "rectangles found: " + str(len(found_rects)) + "\n" + "buildings found: " + str(len(buildings))
+            msg = "rectangles found: " + unicode(len(found_rects)) + "\n" + "buildings found: " + unicode(len(buildings))
             QMessageBox.information(None, "postAAR", msg)
 
             ###############################
@@ -285,7 +285,7 @@ class postAAR:
                     # build geometry
                     fet = QgsFeature()
                     fet.setGeometry(QgsGeometry.fromPolygonXY ([listPoints]))
-                    fet.setAttributes([rect_ID, str(PIDs)[1:-1], max_diff_side_rectangle])
+                    fet.setAttributes([rect_ID, unicode(PIDs)[1:-1], max_diff_side_rectangle])
                     pr.addFeatures([fet])
                     #results_layer.updateExtent()
             else:
@@ -330,8 +330,8 @@ class postAAR:
                     for rectan in rectangles_geom:
                         building_geom = building_geom.combine(rectan)
                     # aggregate the attributes of the building
-                    PIDs = str(set(PIDs))[1:-1]
-                    rectan_IDs =str(rectan_IDs)[1:-1]
+                    PIDs = unicode(set(PIDs))[1:-1]
+                    rectan_IDs = unicode(rectan_IDs)[1:-1]
                     count_rectangles = len(b)
                     mean_max_diff_sides = sum(diff_side_rectangles)/len(diff_side_rectangles)
                     # create building feature 
