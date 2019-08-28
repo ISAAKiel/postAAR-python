@@ -25,10 +25,9 @@
 import os
 
 from PyQt5 import uic, QtWidgets
-#from PyQt5.QtGui import QIcon
-#from PyQt5.QtGui import QIcon, QDialogButtonBox
 from PyQt5.QtWidgets import QMessageBox
-
+from qgis.gui import QgsMessageBar
+from qgis.utils import iface
 
 # This loads your .ui file so that PyQt can populate your plugin with the elements from Qt Designer
 FORM_CLASS, _ = uic.loadUiType(os.path.join(
@@ -63,7 +62,6 @@ class postAARDialog(QtWidgets.QDialog, FORM_CLASS):
         maximum_length_of_side = unicode(self.maximum_length_of_side.text())
         minimum_length_of_side = unicode(self.minimum_length_of_side.text())
         max_diff_side = unicode(self.maximal_length_difference.text())
-        #results_shape = unicode(self.save_outfile.filePath())
 
         # Layer selected?
         msg = "Please update the data\n\n"
@@ -78,7 +76,7 @@ class postAARDialog(QtWidgets.QDialog, FORM_CLASS):
 
         # ID field selected?
         if not postid:
-            msg = msg + "-  Please select a ID field.\n" 
+            msg = msg + "-  Please select an ID field.\n" 
 
         # max length >= min length
         if maximum_length_of_side < minimum_length_of_side:
@@ -89,6 +87,7 @@ class postAARDialog(QtWidgets.QDialog, FORM_CLASS):
             return False
 
         # the id column has unique values?
+        iface.messageBar().pushMessage("Info", "Checking for duplicate ID's")
         postslist=[]
         for f in postlayer.getFeatures():
             pid = f[postid]
