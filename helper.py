@@ -3,6 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from multiprocessing import Pool
 import random
+import time
 
 #double result = atan2(P3.y - P1.y, P3.x - P1.x) -
 #                atan2(P2.y - P1.y, P2.x - P1.x);
@@ -31,6 +32,8 @@ def add_to_list(new_rect, found_rects):
 	return exists
 
 def calcDistanceInWindow (window, x_values, y_values, squared=False):
+    start = time.time()
+    print('\r\nCalculate distance matrix for {} features in current window, start {}.' .format(len(window), time.asctime()), end='')
     window_distance = [[0.0 for point_a in range(len(window))] for point_b in range(len(window))]
     for point_a in range(len(window)):
         for point_b in range(len(window)):
@@ -40,6 +43,7 @@ def calcDistanceInWindow (window, x_values, y_values, squared=False):
                     distance_ab = math.sqrt(distance_ab)
                 window_distance[point_a][point_b] = distance_ab
                 window_distance[point_b][point_a] = distance_ab
+    print('\rDistance done: {:3.3f}s' .format((time.time()-start)), end='') 
     return window_distance
 
 def loadDataFromFile( filename, x_value_position_in_dataset, y_value_position_in_dataset, readFromEnd=False ):

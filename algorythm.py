@@ -9,10 +9,9 @@ from .helper import *
 
 def calcRectsInWindow (window, x_values, y_values, maximal_length_of_side, minimal_length_of_side, maximal_difference_between_comparable_sides_in_percent=0.1):
     rects = []
-
+    start = time.time()
     maximal_length_of_side *= maximal_length_of_side
     minimal_length_of_side *= minimal_length_of_side
-    print('\r\nCalculate distance matrix for {} features in current window.' .format(len(window)), end='')
     distance_in_window = calcDistanceInWindow(window, x_values, y_values, squared=True)
     for a in range(len(window)):
         for b in range(len(window)):
@@ -20,50 +19,56 @@ def calcRectsInWindow (window, x_values, y_values, maximal_length_of_side, minim
                 break
 
             dist_ab = distance_in_window[a][b]
-
             if dist_ab < maximal_length_of_side and dist_ab > minimal_length_of_side: # macht Sinn, erste Kante AB
                 for c in range(len(window)):
                     if c == b or c == a:
                         break
 
-                    dist_ac = distance_in_window[a][c] # 3. Seite (Hypothenuse?) in einem Dreieck ABC
-                    
-                    # if dist_ac < maximal_length_of_side and dist_ac > minimal_length_of_side: # AC darf größer sein als max_length aber mus kleiner sein als sqrt(max-length² + max-length²) 
-                    if dist_ac <= math.sqrt(2*(maximal_length_of_side**2))  and dist_ac > minimal_length_of_side: # AC darf größer sein als max_length aber mus kleiner sein als sqrt(max-length² + max-length²) 
+                    dist_ac = distance_in_window[a][c] # 2. Seite in einem Dreieck ABC
+                    if dist_ac < maximal_length_of_side and dist_ac > minimal_length_of_side:
+                        break
+                    dist_bc = distance_in_window[b][c] # Hypothenuse in einem Dreieck?
+                    # angle at point A in degrees
+                    alpha = math.degrees(math.acos((dist_ab**2 + dist_ac**2 - dist_bc**2)/(2*dist_ab*dist_ac)))
+                    # Stell sicher, dass Winkel 90° +/- 2°. Muss in die GUI, später auch Trapezwinkel (z.B. 80° >> 100°)
+                    max_diff_degree = 2
+                    angle_expected = 90
+                    if math.fabs (alpha - angle_expected) < max_diff_degree:
+                    # if dist_bc <= math.sqrt(2*(maximal_length_of_side**2))  and dist_ac > minimal_length_of_side: # AC darf größer sein als max_length aber mus kleiner sein als sqrt(max-length² + max-length²) 
                         try:
-                            dist_bc = distance_in_window[b][c]
-
-                            if dist_ab < dist_bc:
-                                for potential_d in range(len(window)):
-                                    dist_bd = distance_in_window[b][potential_d]
-                                    dist_ad = distance_in_window[a][potential_d]
-                                    dist_cd = distance_in_window[c][potential_d]
+                            print('\rHabe ABC, suche Pfosten D')
+                            for potential_d in range(len(window)):
+                                if potential_d == a or potential_d == b or potential_d == c:
+                                   break
+                                dist_cd = distance_in_window[c][potential_d]
+                                if dist_ac < minimal_length_of_side and dist_ac > maximal_length_of_side:
+                                    break
+                                dist_bd = distance_in_window[b][potential_d]
+                                if dist_bd < minimal_length_of_side and dist_ac > maximal_length_of_side:
+                                    break
+                                dist_ad = distance_in_window[a][potential_d]
+                                if dist_bd < minimal_length_of_side:
+                                    break
+                                gamma = math.degrees(math.acos((dist_cd**2 + dist_ac**2 - dist_ad**2)/(2*dist_ac*dist_cd)))
+                                if math.fabs (gamma - angle_expected) < max_diff_degree:
                                     if dist_ab < dist_cd:
                                         side_comp_1 = math.fabs((dist_ab/dist_cd)-1)
                                     else:
                                         side_comp_1 = math.fabs((dist_cd/dist_ab)-1)
-                                    if dist_bc < dist_ad:
-                                        side_comp_2 = math.fabs((dist_bc/dist_ad)-1)
+                                    if dist_bd < dist_ac:
+                                        side_comp_2 = math.fabs((dist_bd/dist_ac)-1)
                                     else:
-                                        side_comp_2 = math.fabs((dist_ad/dist_bc)-1)
-                                    if dist_ac < dist_bd:
-                                        diagon_comp = math.fabs((dist_ac/dist_bd)-1)
+                                        side_comp_2 = math.fabs((dist_ac/dist_bd)-1)
+                                    if dist_ad < dist_bc:
+                                        diagon_comp = math.fabs((dist_ad/dist_bc)-1)
                                     else:
-                                        diagon_comp = math.fabs((dist_bd/dist_ac)-1) 
-                                    if (
-                                        dist_bd <=math.sqrt(2*(maximal_length_of_side**2)) and #< maximal_length_of_side and 
-                                        dist_bd > minimal_length_of_side and
-                                        dist_bc > dist_bd and
-                                        dist_ac < dist_ad and
-                                        side_comp_1 < maximal_difference_between_comparable_sides_in_percent and
-                                        side_comp_2 < maximal_difference_between_comparable_sides_in_percent and
-                                        diagon_comp < maximal_difference_between_comparable_sides_in_percent):
-                                        new_rect = [[window[a],window[c],window[potential_d],window[b],window[a]], 
-                                                    # [math.fabs(dist_bc/dist_ad-1)]]
-                                                    max([math.fabs(dist_bc/dist_ad-1), math.fabs((dist_ab/dist_cd)-1)]),
-                                                    diagon_comp]
-                                        add_to_list(new_rect,rects)
-
+                                        diagon_comp = math.fabs((dist_bc/dist_ad)-1) 
+                                    
+                                    new_rect = [[window[a],window[c],window[potential_d],window[b],window[a]], 
+                                                max([math.fabs(dist_bc/dist_ad-1), math.fabs((dist_ab/dist_cd)-1)]),
+                                                diagon_comp]
+                                    add_to_list(new_rect,rects)
+                                    print (str(new_rect))
                         except ZeroDivisionError:
                             pass
     return [rects]

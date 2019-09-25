@@ -235,10 +235,6 @@ class postAAR:
 
             ########################################
             # Do the calculation by call the functions from algorithm.py
-            if len(postslist) > 1000:
-                PythonConsole = iface.mainWindow().findChild( QDockWidget, 'PythonConsole' )
-                if not PythonConsole.isVisible():
-                    PythonConsole.setVisible( True )
 
             iface.messageBar().pushMessage("Info", "Building windows", level=Qgis.Info)
             windows = buildWindows(x_values, y_values, min(x_values) - 1, max(x_values) + 1, min(y_values) - 1, max(y_values) + 1, maximum_length_of_side)
@@ -246,6 +242,7 @@ class postAAR:
 
             iface.messageBar().pushMessage("Info", "Finding rectangles", level=Qgis.Info, duration=3)
             found_rects = find_rects(windows, x_values, y_values, maximum_length_of_side, minimum_length_of_side, max_diff_side) #,  number_of_computercores=number_of_computercores)
+            # Create a sequential ID for the rects
             count_rects = 0
             for rect in found_rects:
                 count_rects += 1
