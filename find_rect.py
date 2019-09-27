@@ -21,19 +21,19 @@ number_of_computercores = 4
 #maximal_difference_between_comparable_sides_in_percent = 0.25
 
 # newtest.dat
-filename = 'newtest.dat'
-x_value_position_in_dataset,y_value_position_in_dataset = 1,2
-maximal_length_of_side = 45.0
-minimal_length_of_side = 2.5
-maximal_difference_between_comparable_sides_in_percent = 0.25
+#filename = 'newtest.dat'
+#x_value_position_in_dataset,y_value_position_in_dataset = 1,2
+#maximal_length_of_side = 45.0
+#minimal_length_of_side = 2.5
+#maximal_difference_between_comparable_sides_in_percent = 0.1
 
 # zuerich_selected.txt
-#filename = 'zuerich_selected.txt'
-#x_value_position_in_dataset,y_value_position_in_dataset = 1,0
-#read_set_of_Data_from_end = True
-#maximal_length_of_side = 10.0
-#minimal_length_of_side = 1.0
-#maximal_difference_between_comparable_sides_in_percent = 0.05
+filename = 'zuerich_selected.txt'
+x_value_position_in_dataset, y_value_position_in_dataset = 1,0
+read_set_of_Data_from_end = True
+maximal_length_of_side = 5.0
+minimal_length_of_side = 4.5
+maximal_difference_between_comparable_sides_in_percent = 0.01
 
 if __name__ == '__main__':
 	print('Loading data')
@@ -43,19 +43,19 @@ if __name__ == '__main__':
 
 	print('Visualising data')
 	hlp.showPointPlot(x_values, y_values)
-
+	
 	print('Building windows')
 	start = time.time()
 	windows = hlp.buildWindows(x_values, y_values, min(x_values) - 1, max(x_values) + 1, min(y_values) - 1, max(y_values) + 1, maximal_length_of_side)
 	print('Build windows (',(time.time()-start),'s)', sep='')
-
-	print('Finding rects', end='' , flush=True)
+	
+	print('Finding rects', end='\n' , flush=True)
 	start = time.time()
-	found_rects = alg.find_rects(windows, x_values, y_values, maximal_length_of_side, minimal_length_of_side, maximal_difference_between_comparable_sides_in_percent,  number_of_computercores=number_of_computercores)
+	found_rects = alg.find_rects(windows, x_values, y_values, maximal_length_of_side, minimal_length_of_side, maximal_difference_between_comparable_sides_in_percent)
 	print('Found {} rects in {:.3f}s'.format(len(found_rects), time.time()-start))
 		
 	hlp.showRectangales(found_rects, x_values, y_values, block=False, name="Gefundene Rechtecke")
-
+	
 	print('Finding buildings', flush=True)
 	start = time.time()
 	buildings = alg.findBuildings(found_rects, x_values, y_values)
@@ -64,7 +64,7 @@ if __name__ == '__main__':
 	hlp.showBuildings(buildings, x_values, y_values, False)
 	buildings.sort(key=lambda l : len(l), reverse=True)
 	hlp.showBuildings(buildings[:10], x_values, y_values, False, name="10 größten Gebäude")
-
+	
 	print('Press Enter to exit...')
 	input()
 

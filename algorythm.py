@@ -5,7 +5,7 @@ from shapely.geometry import Polygon
 # from qgis.core import QgsMessageLog
 # from PyQt5.QtWidgets import Dialog, QProgressBar
 
-from .helper import * 
+from helper import * 
 
 def calcRectsInWindow (window, x_values, y_values, maximal_length_of_side, minimal_length_of_side, maximal_difference_between_comparable_sides_in_percent=0.1, dist_squared=True):
     rects = []
@@ -54,7 +54,7 @@ def calcRectsInWindow (window, x_values, y_values, maximal_length_of_side, minim
                             pass
     return [rects]
 
-def find_rects(windows, x_values, y_values, maximal_length_of_side, minimal_length_of_side, maximal_difference_between_comparable_sides_in_percent=0.1, multicore=False, number_of_computercores=4):
+def find_rects(windows, x_values, y_values, maximal_length_of_side, minimal_length_of_side, maximal_difference_between_comparable_sides_in_percent=0.1, multicore=True, number_of_computercores=4):
     start = time.time()
 
     calculated_rects = []
@@ -156,3 +156,139 @@ def isPartOfBuilding(rect,building, x_values, y_values, strict=True):
         if not strict and overlaps == 0:
             return True
     return False
+
+class Point:
+
+    def __init__(self, id, x, y):
+        self.id = id
+        self.x = x
+        self.y = y
+
+        self.pointsNear = {}
+        self.pointsNearDistance = {}
+        self.pointsNearisch = {}
+        self.pointsNearischDistance = {}
+
+    def addPointNear(self, point, distance):
+        if not self.isPointNear(point.id):
+            self.pointsNear[point.id] = point
+            self.pointsNearDistance[point.id] = distance
+        self.addPointNearisch(point, distance)
+
+    def addPointNearisch(self, point, distance):
+        if not self.isPointNearisch(point.id):
+            self.pointsNearisch[point.id] = point
+            self.pointsNearischDistance[point.id] = distance
+
+    def isPointNear(self, id):
+        if id in self.pointsNear:
+            return True
+        return False
+
+    def isPointNearisch(self, id):
+        if id in self.pointsNearisch:
+            return True
+        return False
+
+    def getNearDistance(self, id):
+        if self.isPointNear(id):
+            return self.pointsNearDistance[id]
+        return 1000000000
+
+    def getNearischDistance(self, id):
+        if self.isPointNearisch(id):
+            return self.pointsNearischDistance[id]
+        return 1000000000
+
+def calcRectsinWindow_alternative(window, x_values, y_values, maximal_length_of_side, minimal_length_of_side, maximal_difference_between_comparable_sides_in_percent=0.1):
+    rects = []
+    start = time.time()
+
+    points = []
+
+    maximal_length_of_diagonal = maximal_length_of_side * 1.5
+
+    for p in window:
+        points.append(Point(p, x_values[p], y_values[p]))
+
+    for current_point in points:
+        for compare_point in points:
+            if (    current_point.id != compare_point.id and
+                    not current_point.isPointNear(compare_point.id) and
+                    not current_point.isPointNearisch(compare_point.id) and
+                    (current_point.x + maximal_length_of_side) >= compare_point.x and (current_point.x - maximal_length_of_side) <= compare_point.x  and
+                    (current_point.y + maximal_length_of_side) >= compare_point.y and (current_point.y - maximal_length_of_side) <= compare_point.y  ):
+                distance_between_points = math.sqrt(math.pow(current_point.x - compare_point.x, 2) + math.pow(current_point.y - compare_point.y,2))
+                if (    distance_between_points <= maximal_length_of_side and
+                        distance_between_points >= minimal_length_of_side ):
+                    #distance_between_points = math.sqrt(distance_between_points)    
+                    current_point.addPointNear(compare_point, distance_between_points)
+                    compare_point.addPointNear(current_point, distance_between_points)
+                elif distance_between_points <= maximal_length_of_diagonal:
+                    #distance_between_points = math.sqrt(distance_between_points)
+                    current_point.addPointNearisch(compare_point, distance_between_points)
+                    compare_point.addPointNearisch(current_point, distance_between_points)
+    
+    for a in points:
+        #print('Point {}/{} {}, Rects {}'.format(a.id, len(points), len(a.pointsNear), len(rects)), flush=True)
+        for b in a.pointsNear.values():
+            if a.id == b.id:
+                continue
+            for c in b.pointsNear.values():
+                if a.id == c.id or b.id == c.id or not c.isPointNearisch(a.id):
+                    continue
+                for d in c.pointsNear.values():
+                    if a.id == d.id or b.id == d.id or c.id == d.id or not d.isPointNearisch(b.id) or not d.isPointNear(a.id):
+                        continue
+                    if (
+                        a.getNearDistance(b.id) < a.getNearischDistance(c.id) and
+                        a.getNearDistance(d.id) < a.getNearischDistance(c.id) and
+                        c.getNearDistance(d.id) < d.getNearischDistance(b.id) and
+                        c.getNearDistance(b.id) < d.getNearischDistance(b.id) and
+                        math.fabs(min(a.getNearDistance(b.id), d.getNearDistance(c.id))/ max(a.getNearDistance(b.id), d.getNearDistance(c.id))-1) < maximal_difference_between_comparable_sides_in_percent and
+                        math.fabs(min(a.getNearDistance(d.id), b.getNearDistance(c.id))/ max(a.getNearDistance(d.id), b.getNearDistance(c.id))-1) < maximal_difference_between_comparable_sides_in_percent and
+                        math.fabs(min(a.getNearischDistance(c.id), d.getNearischDistance(b.id))/ max(a.getNearischDistance(c.id), d.getNearischDistance(b.id))-1) < maximal_difference_between_comparable_sides_in_percent):
+                        new_rect = [[a.id, b.id, c.id, d.id, a.id]]
+                        add_to_list(new_rect, rects)
+    return [rects]
+
+def find_rects_alternative(windows, x_values, y_values, maximal_length_of_side, minimal_length_of_side, maximal_difference_between_comparable_sides_in_percent=0.1, multicore=True, number_of_computercores=4):
+    start = time.time()
+
+    calculated_rects = []
+    if multicore:
+        pool = Pool(processes=number_of_computercores)
+
+        results = []
+        for w in windows:
+            results.append(pool.apply_async(calcRectsinWindow_alternative, (w, x_values, y_values, maximal_length_of_side, minimal_length_of_side, maximal_difference_between_comparable_sides_in_percent, )))
+
+        current_calculated_windows = 0
+        for result in results:
+            calculated_rects.append(result.get())
+            
+            current_calculated_windows += 1
+            print('\rCalculating rects {:3d}% - ({:3.3f}s)'.format(int(current_calculated_windows/len(windows)*100), (time.time()-start)), end='', flush=True)
+            # info2user='Calculating rects {:3d}% - ({:3.3f}s)'.format(int(current_calculated_windows/len(windows)*100), (time.time()-start))
+            # QgsMessageLog.logMessage(info2user, "Dataprocessing")
+            
+    else:
+        current_calculated_windows = 0
+        for w in windows:
+            calculated_rects.append(calcRectsinWindow_alternative(w, x_values, y_values, maximal_length_of_side, minimal_length_of_side, maximal_difference_between_comparable_sides_in_percent))
+        
+            current_calculated_windows += 1
+            print('\rCalculating rects {:3d}% - ({:3.3f}s)'.format(int(current_calculated_windows/len(windows)*100), (time.time()-start)), end='', flush=True)
+            # info2user='Calculating rects {:3d}% - ({:3.3f}s)'.format(int(current_calculated_windows/len(windows)*100), (time.time()-start))
+            # QgsMessageLog.logMessage(info2user, "Dataprocessing")
+            
+    print('\r\nConsolidating rects')
+    found_rects = []
+    for rects_in_window in calculated_rects:
+        print('\rConsolidating rects - {}'.format(len(found_rects)), end='')
+        # info2user='\rConsolidating rects - {}'.format(len(found_rects))
+        # QgsMessageLog.logMessage(info2user, "Dataprocessing")
+        for rect in rects_in_window[0]:
+            add_to_list(rect, found_rects)
+    print()
+    return found_rects
