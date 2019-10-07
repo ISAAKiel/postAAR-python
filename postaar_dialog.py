@@ -59,8 +59,8 @@ class postAARDialog(QtWidgets.QDialog, FORM_CLASS):
         # Input values have to be checked
         postlayer = self.cmb_layer_selected.currentLayer()
         postid = self.cmb_postid.currentField()
-        maximum_length_of_side = unicode(self.maximum_length_of_side.text())
-        minimum_length_of_side = unicode(self.minimum_length_of_side.text())
+        maximum_length_of_side = float(unicode(self.maximum_length_of_side.text()))
+        minimum_length_of_side = float(unicode(self.minimum_length_of_side.text()))
         max_diff_side = unicode(self.maximal_length_difference.text())
 
         # Layer selected?

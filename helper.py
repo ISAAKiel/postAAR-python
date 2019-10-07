@@ -1,9 +1,4 @@
 import math
-import numpy as np
-import matplotlib.pyplot as plt
-from multiprocessing import Pool
-import random
-import time
 
 #double result = atan2(P3.y - P1.y, P3.x - P1.x) -
 #                atan2(P2.y - P1.y, P2.x - P1.x);
@@ -22,24 +17,6 @@ def calcDistanceInWindow (window, posts):
                 window_distance[point_a][point_b] = distance_ab
                 window_distance[point_b][point_a] = distance_ab
     return window_distance
-
-def loadDataFromFile( filename, x_value_position_in_dataset, y_value_position_in_dataset, readFromEnd=False ):
-    x_values,y_values = [],[]
-    with open(filename) as f:
-        for l in f:
-            temp = l.split()
-            if len(temp) >= x_value_position_in_dataset and len(temp) >= y_value_position_in_dataset:
-                try:
-                    if readFromEnd:
-                        x_values.append(float(temp[len(temp)-x_value_position_in_dataset-1]))
-                        y_values.append(float(temp[len(temp)-y_value_position_in_dataset-1]))
-                    else:
-                        x_values.append(float(temp[x_value_position_in_dataset]))
-                        y_values.append(float(temp[y_value_position_in_dataset]))
-                except ValueError:
-                    pass
-
-    return x_values, y_values
 
 def buildWindows(posts, maximal_length_of_side):
     min_value_x = min([post[1] for post in posts]) - 1
@@ -69,60 +46,3 @@ def buildWindows(posts, maximal_length_of_side):
             window_x += window_size/2
         window_y += window_size/2
     return windows
-
-def showRectangales(rectangles, posts, block=True, name='Rechtecke', x_axis='x in m', y_axis='y in m', point_size=10):
-    
-    fig_rectangle = plt.figure()
-    fig_rectangle.canvas.set_window_title(name)
-    rectangle_plot = fig_rectangle.add_subplot(111)
-    rectangle_plot.set_title(name)
-    rectangle_plot.set_xlabel(x_axis)
-    rectangle_plot.set_ylabel(y_axis)
-    rectangle_plot.grid(True)
-    rectangle_plot.axis('equal')
-
-    for r in rectangles:
-        x_points, y_points = [], []
-        for p in r.corners:
-            x_points.append(posts[p][1])
-            y_points.append(posts[p][2])
-        rectangle_plot.plot(x_points, y_points,'b',linewidth=1.0)
-
-    rectangle_plot.scatter([post[1] for post in posts], [post[2] for post in posts], c='r', s=point_size)
-
-    fig_rectangle.show()
-    if block:
-        print("Press Key to continue...")
-        plt.waitforbuttonpress(0)
-
-def runInThread( function, args = () ):
-    pool = Pool(processes=2)
-    return pool.apply_async(function, args).get()
-
-def showBuildings(buildings, posts, block=True, name='Gebäude', x_axis='x in m', y_axis='y in m', point_size=10):
-    
-	fig_rectangle = plt.figure()
-	fig_rectangle.canvas.set_window_title(name)
-	rectangle_plot = fig_rectangle.add_subplot(111)
-	rectangle_plot.set_title(name)
-	rectangle_plot.set_xlabel(x_axis)
-	rectangle_plot.set_ylabel(y_axis)
-	rectangle_plot.grid(True)
-	rectangle_plot.axis('equal')
-
-	for building in buildings:
-		building_color = (random.uniform(0, 1), random.uniform(0, 1), random.uniform(0, 1))
-		for r in building.rooms:
-			x_points, y_points = [], []
-			for p in r.corners:
-				x_points.append(posts[p][1])
-				y_points.append(posts[p][2])
-			rectangle_plot.plot(x_points, y_points, c=building_color,linewidth=1.0)
-
-	rectangle_plot.scatter([post[1] for post in posts], [post[2] for post in posts], c='r', s=point_size)
-
-	fig_rectangle.show()
-	if block:
-		print("Press Key to continue...")
-		plt.waitforbuttonpress(0)
-    
