@@ -90,7 +90,6 @@ def find_rects(windows, posts, maximal_length_of_side, minimal_length_of_side, m
         current_calculated_windows += 1
         print('\rCalculating rects {:3d}% - ({:3.3f}s)'.format(int(current_calculated_windows/len(windows)*100), (time.time()-start)), end='', flush=True)
   
-    print('\r\nConsolidating rects')
     found_rects = []
     for rects_in_window in calculated_rects:
         found_rects += rects_in_window
@@ -103,7 +102,7 @@ def findBuildings(found_rects, posts, number_of_computercores=4):
 
     building_lists = []
     building_list = []
-    divider = int(len(found_rects)/20) + 1
+    divider = int(len(found_rects)/100) + 1
     i = 0
     for rect in found_rects:
         building_list.append(Building(rect))

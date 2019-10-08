@@ -52,7 +52,7 @@ if __name__ == '__main__':
         rect.setId(id)
         id += 1
 
-    print('Finding buildings', flush=True)
+    print('Finding buildings', end='', flush=True)
     buildings = alg.findBuildings(found_rects, posts)
     print('\nFound {} buildings in {:.3f}s'.format(len(buildings), time.time()-start))
 

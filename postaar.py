@@ -215,14 +215,14 @@ class postAAR:
             postlayer = self.dlg.cmb_layer_selected.currentLayer()
             postlayer_crs = postlayer.crs().authid()
             postid = self.dlg.cmb_postid.currentField()
-            maximum_length_of_side = float(unicode(self.dlg.maximum_length_of_side.text()))
-            minimum_length_of_side = float(unicode(self.dlg.minimum_length_of_side.text()))
-            max_diff_side = float(unicode(self.dlg.maximal_length_difference.text()))
+            maximum_length_of_side = self.dlg.maximum_length_of_side.value()
+            minimum_length_of_side = self.dlg.minimum_length_of_side.value()
+            max_diff_side = self.dlg.maximal_length_difference.value()
             if self.dlg.advanced.isChecked():
-                number_of_computercores = int(unicode(self.dlg.cores.text()))
-                maximum_length_of_diagonal = float(unicode(self.dlg.maximum_length_of_diagonal.text()))
-                minimum_length_of_diagonal = float(unicode(self.dlg.minimum_length_of_diagonal.text()))
-                max_diff_diagonal = float(unicode(self.dlg.maximal_diagonal_difference.text()))
+                number_of_computercores = int(self.dlg.cores.value())
+                maximum_length_of_diagonal = self.dlg.maximum_length_of_diagonal.value()
+                minimum_length_of_diagonal = unicode(self.dlg.minimum_length_of_diagonal.value())
+                max_diff_diagonal = self.dlg.maximal_diagonal_difference.value()
             else:
                 number_of_computercores = 4
                 maximum_length_of_diagonal = 1.5

@@ -58,13 +58,13 @@ class postAARDialog(QtWidgets.QDialog, FORM_CLASS):
         # Input values have to be checked
         postlayer = self.cmb_layer_selected.currentLayer()
         postid = self.cmb_postid.currentField()
-        maximum_length_of_side = float(unicode(self.maximum_length_of_side.text()))
-        minimum_length_of_side = float(unicode(self.minimum_length_of_side.text()))
-        max_diff_side = unicode(self.maximal_length_difference.text())
+        maximum_length_of_side = self.maximum_length_of_side.value()
+        minimum_length_of_side = self.minimum_length_of_side.value()
+        max_diff_side = self.maximal_length_difference.value()
         
         if self.advanced.isChecked():
-            maximum_length_of_diagonal = float(unicode(self.dlg.maximum_length_of_diagonal.text()))
-            minimum_length_of_diagonal = float(unicode(self.dlg.minimum_length_of_diagonal.text()))
+            maximum_length_of_diagonal = self.maximum_length_of_diagonal.value()
+            minimum_length_of_diagonal = self.minimum_length_of_diagonal.value()
             
             if maximum_length_of_diagonal < minimum_length_of_diagonal:
                 msg = msg + "-  Maximal length of diagonal must be greater or equal to minimal length.\n"
