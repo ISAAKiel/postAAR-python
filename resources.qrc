@@ -1,5 +1,6 @@
 <RCC>
-    <qresource prefix="/plugins/postAAR" >
-        <file>icon.png</file>
-    </qresource>
+  <qresource prefix="/plugins/postAAR">
+    <file>img/icon.png</file>
+    <file>img/rect_sides.png</file>
+  </qresource>
 </RCC>

@@ -24,7 +24,7 @@
 
 import os
 
-from PyQt5 import uic, QtWidgets
+from PyQt5 import QtCore, uic, QtWidgets
 from PyQt5.QtWidgets import QMessageBox
 from qgis.gui import QgsMessageBar
 from qgis.utils import iface
@@ -38,12 +38,9 @@ class postAARDialog(QtWidgets.QDialog, FORM_CLASS):
     def __init__(self, parent=None):
         """Constructor."""
         super(postAARDialog, self).__init__(parent)
-        # Set up the user interface from Designer through FORM_CLASS.
-        # After self.setupUi() you can access any designer object by doing
-        # self.<objectname>, and you can use autoconnect slots - see
-        # http://qt-project.org/doc/qt-4.8/designer-using-a-ui-file.html
-        # #widgets-and-dialogs-with-auto-connect
         self.setupUi(self)
+        self.setSizeGripEnabled(False);
+        self.setWindowFlags(QtCore.Qt.Dialog | QtCore.Qt.MSWindowsFixedSizeDialogHint)
     
     def accept ( self ):
         validInput = self.checkvalues()
