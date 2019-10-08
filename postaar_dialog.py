@@ -25,7 +25,7 @@
 import os
 
 from PyQt5 import QtCore, uic, QtWidgets
-from PyQt5.QtWidgets import QMessageBox
+from PyQt5.QtWidgets import QMessageBox, QApplication
 from qgis.gui import QgsMessageBar
 from qgis.utils import iface
 
@@ -41,6 +41,8 @@ class postAARDialog(QtWidgets.QDialog, FORM_CLASS):
         self.setupUi(self)
         self.setSizeGripEnabled(False);
         self.setWindowFlags(QtCore.Qt.Dialog | QtCore.Qt.MSWindowsFixedSizeDialogHint)
+        self.showAdvanced(0)
+        self.advanced.stateChanged.connect(self.showAdvanced)
     
     def accept ( self ):
         validInput = self.checkvalues()
@@ -59,6 +61,13 @@ class postAARDialog(QtWidgets.QDialog, FORM_CLASS):
         maximum_length_of_side = float(unicode(self.maximum_length_of_side.text()))
         minimum_length_of_side = float(unicode(self.minimum_length_of_side.text()))
         max_diff_side = unicode(self.maximal_length_difference.text())
+        
+        if self.advanced.isChecked():
+            maximum_length_of_diagonal = float(unicode(self.dlg.maximum_length_of_diagonal.text()))
+            minimum_length_of_diagonal = float(unicode(self.dlg.minimum_length_of_diagonal.text()))
+            
+            if maximum_length_of_diagonal < minimum_length_of_diagonal:
+                msg = msg + "-  Maximal length of diagonal must be greater or equal to minimal length.\n"
 
         # Layer selected?
         msg = "Please update the data\n\n"
@@ -77,10 +86,10 @@ class postAARDialog(QtWidgets.QDialog, FORM_CLASS):
 
         # max length >= min length
         if maximum_length_of_side < minimum_length_of_side:
-            msg = msg + "-  Maximal length must be greater or equal to minimal length.\n"
+            msg = msg + "-  Maximal length of side must be greater or equal to minimal length.\n"
 
         if len(msg)>30:
-            QMessageBox.critical(self, "postAAR input dialog", msg)
+            QMessageBox.critical(self, "postAAR input error", msg)
             return False
 
         # the id column has unique values?
@@ -105,3 +114,20 @@ class postAARDialog(QtWidgets.QDialog, FORM_CLASS):
             if resp != 1024:
                 return False
         return True
+        
+    def showAdvanced(self, state):
+        if self.advanced.isChecked():
+            self.gBDiagonals.setVisible(True)
+            self.gBMisc.setVisible(True)
+        else:
+            result = [ self.size().width(), self.size().height() ]
+            result[1] -= self.gBDiagonals.size().height()
+            result[1] -= self.gBMisc.size().height()
+            self.gBDiagonals.setVisible(False)
+            self.gBMisc.setVisible(False)
+
+            while self.size().height() > result[1]:
+                QApplication.instance().sendPostedEvents()
+                self.resize( result[0], result[1] )
+        
+        self.adjustSize()

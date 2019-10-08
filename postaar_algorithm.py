@@ -2,6 +2,7 @@ import argparse
 import time
 import tempfile
 import os
+import sys
 
 import helper as hlp
 import algorythm as alg
@@ -14,16 +15,20 @@ def parseCommandline():
     parser.add_argument('-outputfile', '-o', help='Filename for writing the results', default='output.buildings')
     parser.add_argument('-maximal_length_of_side', '-smax', help='Maximal length of the rectangle-sides', type=float, default=10.0)
     parser.add_argument('-minimal_length_of_side', '-smin', help='Minimal length of the rectangle-sides', type=float, default=2.0)
-    parser.add_argument('-maximal_difference_between_comparable_sides_in_percent', '-diff', help='Maximal diffence for parallel sides in percent', type=float, default=0.05)
+    parser.add_argument('-maximal_difference_between_comparable_sides_in_percent', '-sdiff', help='Maximal diffence for parallel sides in percent', type=float, default=0.05)
+    parser.add_argument('-maximal_length_of_diagonals', '-dmax', help='Maximal length of the diagonals in percentage of sides', type=float, default=1.5)
+    parser.add_argument('-minimal_length_of_diagonals', '-dmin', help='Minimal length of the diagonals in percentage of sides', type=float, default=0.0)
+    parser.add_argument('-maximal_difference_between_diagonals_in_percent', '-ddiff', help='Maximal diffence for diagonals in percent', type=float, default=1.0)
     parser.add_argument('-number_of_computercores', '-cores', help='Number of computercores used in computations', type=int, default=4)
 
     return parser.parse_args()
 
 if __name__ == '__main__':
+    print(str(sys.argv))
     start = time.time()
 
     arguments = parseCommandline()
-
+    
     print('Loading data')
     posts = []
     with open(os.path.join(tempfile.gettempdir(), arguments.file)) as f:

@@ -28,6 +28,7 @@ from qgis.core import *
 from qgis.gui import QgsMessageBar
 from qgis.utils import iface
 
+
 # Initialize Qt resources from file resources.py
 from .resources import *
 
@@ -37,6 +38,11 @@ import os.path
 
 # specific functions
 import webbrowser
+import subprocess
+import os
+import tempfile
+import sys
+import ntpath
 
 
 
@@ -212,7 +218,18 @@ class postAAR:
             maximum_length_of_side = float(unicode(self.dlg.maximum_length_of_side.text()))
             minimum_length_of_side = float(unicode(self.dlg.minimum_length_of_side.text()))
             max_diff_side = float(unicode(self.dlg.maximal_length_difference.text()))
-            number_of_computercores = 4
+            if self.dlg.advanced.isChecked():
+                number_of_computercores = int(unicode(self.dlg.cores.text()))
+                maximum_length_of_diagonal = float(unicode(self.dlg.maximum_length_of_diagonal.text()))
+                minimum_length_of_diagonal = float(unicode(self.dlg.minimum_length_of_diagonal.text()))
+                max_diff_diagonal = float(unicode(self.dlg.maximal_diagonal_difference.text()))
+            else:
+                number_of_computercores = 4
+                maximum_length_of_diagonal = 1.5
+                minimum_length_of_diagonal = 0.0
+                max_diff_diagonal = 1.0
+                
+                
 
             # write feature id, x, y into a general base list 
             # to secure the order of the features and get coordinate lists
@@ -231,12 +248,7 @@ class postAAR:
                 y_values.append(p[2])
 
             ########################################
-            # Do the calculation by call the functions from algorithm.py
-            import subprocess
-            import os
-            import tempfile
-            import sys
-            import ntpath
+            # Do the calculation by calling postaar_algorithm
 
             transferfile = tempfile.NamedTemporaryFile(mode='w+t', prefix='postAAR', delete=False)
             outputfile = tempfile.NamedTemporaryFile(mode='w+t', prefix='postAAR', delete=False)
@@ -248,7 +260,7 @@ class postAAR:
                     y = f.geometry().asPoint().y()
                     file.write(' '.join(str(i) for i in [pid, x, y]) + '\n')
 
-            subprocess.call([os.path.join(os.__file__.split("lib")[0],"python"), os.path.dirname(os.path.abspath(__file__)) + '\\postaar_algorithm.py', str(ntpath.basename(transferfile.name)), '-o', str(ntpath.basename(outputfile.name)), '-smax', str(maximum_length_of_side), '-smin', str(minimum_length_of_side), '-diff',str(max_diff_side), '-cores', str(number_of_computercores)])
+            subprocess.call([os.path.join(os.__file__.split("lib")[0],"python"), os.path.dirname(os.path.abspath(__file__)) + '\\postaar_algorithm.py', str(ntpath.basename(transferfile.name)), '-o', str(ntpath.basename(outputfile.name)), '-smax', str(maximum_length_of_side), '-smin', str(minimum_length_of_side), '-sdiff',str(max_diff_side), '-dmax', str(maximum_length_of_diagonal), '-dmin', str(minimum_length_of_diagonal), '-ddiff',str(max_diff_diagonal), '-cores', str(number_of_computercores)])
             
             found_rects = []
             buildings = []
