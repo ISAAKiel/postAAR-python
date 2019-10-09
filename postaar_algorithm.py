@@ -44,7 +44,7 @@ if __name__ == '__main__':
 
     print('Finding rects', end='' , flush=True)
     found_rects = alg.find_rects(windows, posts, arguments.maximal_length_of_side, arguments.minimal_length_of_side, arguments.maximal_difference_between_comparable_sides_in_percent, number_of_computercores=arguments.number_of_computercores)
-    print('Found {} rects in {:.3f}s'.format(len(found_rects), time.time()-start))
+    print('\nFound {} rects in {:.3f}s'.format(len(found_rects), time.time()-start))
 
     #Add ids to rects
     id = 0
@@ -61,7 +61,7 @@ if __name__ == '__main__':
     with open(os.path.join(tempfile.gettempdir(), arguments.outputfile), 'w') as f:
         f.write('rectangles\n')
         for rect in found_rects:
-            f.write(str(rect.id) + ' ' + " ".join(str(i) for i in rect.corners) + '\n')
+            f.write(str(rect.id) + ' ' + " ".join(str(i) for i in rect.corners[0:4]) + ' ' + str(rect.diff_sides_max) + ' ' + str(rect.diff_diagonals) + '\n')
         f.write('buildings\n')
         for building in buildings:
             f.write(" ".join(str(i.id) for i in building.rooms) + '\n')

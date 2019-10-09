@@ -61,7 +61,9 @@ class postAARDialog(QtWidgets.QDialog, FORM_CLASS):
         maximum_length_of_side = self.maximum_length_of_side.value()
         minimum_length_of_side = self.minimum_length_of_side.value()
         max_diff_side = self.maximal_length_difference.value()
-        
+
+        msg = "Please update the data\n\n"
+
         if self.advanced.isChecked():
             maximum_length_of_diagonal = self.maximum_length_of_diagonal.value()
             minimum_length_of_diagonal = self.minimum_length_of_diagonal.value()
@@ -70,12 +72,11 @@ class postAARDialog(QtWidgets.QDialog, FORM_CLASS):
                 msg = msg + "-  Maximal length of diagonal must be greater or equal to minimal length.\n"
 
         # Layer selected?
-        msg = "Please update the data\n\n"
         if not postlayer:
-            msg = "-  Please select (active) a Layer.\n" 
+            msg = msg + "-  Please select (active) a Layer.\n" 
         else:
             if postlayer.crs().isGeographic() == True:
-                msg = "-  Layer " + postlayer.name() + " is not projected. Please choose an projected reference system. \n"
+                msg = msg + "-  Layer " + postlayer.name() + " is not projected. Please choose an projected reference system. \n"
             # geometry type is point?
             if postlayer.geometryType() != 0:
                 msg = msg + "-  Layer " + postlayer.name() + " is not a point geometry. Please choose an point geometry.\n"
@@ -88,7 +89,7 @@ class postAARDialog(QtWidgets.QDialog, FORM_CLASS):
         if maximum_length_of_side < minimum_length_of_side:
             msg = msg + "-  Maximal length of side must be greater or equal to minimal length.\n"
 
-        if len(msg)>30:
+        if len(msg) > 30:
             QMessageBox.critical(self, "postAAR input error", msg)
             return False
 

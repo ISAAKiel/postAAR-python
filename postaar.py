@@ -217,12 +217,12 @@ class postAAR:
             postid = self.dlg.cmb_postid.currentField()
             maximum_length_of_side = self.dlg.maximum_length_of_side.value()
             minimum_length_of_side = self.dlg.minimum_length_of_side.value()
-            max_diff_side = self.dlg.maximal_length_difference.value()
+            max_diff_side = self.dlg.maximal_length_difference.value()/100.0
             if self.dlg.advanced.isChecked():
                 number_of_computercores = int(self.dlg.cores.value())
                 maximum_length_of_diagonal = self.dlg.maximum_length_of_diagonal.value()
                 minimum_length_of_diagonal = unicode(self.dlg.minimum_length_of_diagonal.value())
-                max_diff_diagonal = self.dlg.maximal_diagonal_difference.value()
+                max_diff_diagonal = self.dlg.maximal_diagonal_difference.value()/100.0
             else:
                 number_of_computercores = 4
                 maximum_length_of_diagonal = 1.5
@@ -277,19 +277,21 @@ class postAAR:
                     if parse_buildings:
                         buildings.append([int(float(rect)) for rect in data])
                     else:
-                        found_rects.append([int(float(point)) for point in data])
+                        found_rects.append(Rectangle(int(data[0]), [int(float(point)) for point in data[1:5]], float(data[5]), float(data[6]) ))
 
             transferfile.close()
             os.unlink(transferfile.name)
             outputfile.close()
             os.unlink(outputfile.name)
 
+            parameter_name_string = '(' + ("_".join(str(i) for i in [maximum_length_of_side, minimum_length_of_side, max_diff_side, maximum_length_of_diagonal, minimum_length_of_diagonal, max_diff_diagonal])) + ')'
+                
             ###############################
             # Plot results
             # 1. add rectangles
             if len(found_rects) > 0:
                 # Creat results layer in memory
-                results_layer = iface.addVectorLayer("Polygon?crs="+postlayer_crs, "found_rectangles", "memory")
+                results_layer = iface.addVectorLayer("Polygon?crs="+postlayer_crs, postlayer.name() + "_found_rectangles" + parameter_name_string, "memory")
                 # if the loading of the layer fails, give a message
                 if not results_layer:
                     criticalMessageToBar(self, 'Error', 'Failed to load the file '+ results_shape)
@@ -306,13 +308,13 @@ class postAAR:
                     listPoints = [] # Points for geometry
                     PIDs = [] # list of point ID's
                     #print (plist)
-                    for p in r[1:5]:
+                    for p in r.corners:
                         listPoints.append(QgsPointXY(x_values[p], y_values[p]))
                         #print(listPoints)
                         PIDs.append(postslist[p][0])
-                    max_diff_side_rectangle = 0
-                    diff_diagonals = 0
-                    rect_ID = r[0]
+                    max_diff_side_rectangle = r.diff_sides_max
+                    diff_diagonals = r.diff_diagonals
+                    rect_ID = r.id
                     # build geometry
                     fet = QgsFeature()
                     fet.setGeometry(QgsGeometry.fromPolygonXY ([listPoints]))
@@ -326,7 +328,7 @@ class postAAR:
             # 2. add buildungs = connected rectangles
             if len(buildings) > 0:
                 # Creat results layer in memory
-                results_layer = iface.addVectorLayer("Polygon?crs="+postlayer_crs, "found_buildings", "memory")
+                results_layer = iface.addVectorLayer("Polygon?crs="+postlayer_crs, postlayer.name() + "_found_buildings" + parameter_name_string, "memory")
                 # if the loading of the layer fails, give a message
                 if not results_layer:
                     criticalMessageToBar(self, 'Error', 'Failed to load the file '+ results_shape)
@@ -347,11 +349,11 @@ class postAAR:
                     rectangles_geom = []
                     for room in building:
                         listPoints = []
-                        for p in found_rects[room][1:5]:
+                        for p in found_rects[room].corners:
                             listPoints.append(QgsPointXY(x_values[p], y_values[p]))
                             PIDs.append (postslist[p][0])
-                        diff_side_rectangles.append(0)
-                        diff_diagonals.append(0)
+                        diff_side_rectangles.append(found_rects[room].diff_sides_max)
+                        diff_diagonals.append(found_rects[room].diff_diagonals)
                         rectan_IDs.append(room)
                         rectangles_geom.append(QgsGeometry.fromPolygonXY ([listPoints]))
                     building_geom = rectangles_geom[0]
@@ -366,5 +368,12 @@ class postAAR:
                     # create building feature 
                     fet = QgsFeature()
                     fet.setGeometry(building_geom)
-                    fet.setAttributes([PIDs, rectan_IDs, count_rectangles, max_diff_side_rectangle, mean_diff_diagonals])
+                    fet.setAttributes([PIDs, rectan_IDs, count_rectangles, mean_max_diff_sides, mean_diff_diagonals])
                     pr.addFeatures([fet])
+
+class Rectangle:
+    def __init__(self, id, corners, diff_sides_max, diff_diagonals):
+        self.corners = corners
+        self.id = id
+        self.diff_sides_max = diff_sides_max
+        self.diff_diagonals = diff_diagonals

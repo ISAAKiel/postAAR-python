@@ -40,14 +40,15 @@ def calcRectsInWindow (window, posts, maximal_length_of_side, minimal_length_of_
                                         math.fabs((dist_bc/dist_ad)-1) < maximal_difference_between_comparable_sides_in_percent and
                                         math.fabs((dist_ab/dist_cd)-1) < maximal_difference_between_comparable_sides_in_percent and
                                         math.fabs((dist_ac/dist_bd)-1) < maximal_difference_between_comparable_sides_in_percent):
-                                        diagon_comp = math.fabs(max((dist_ad/dist_bc),(dist_bc/dist_ad))-1) 
-                                        rects.add(FoundRect([window[a], window[c], window[potential_d], window[b], window[a]], posts))
+                                        diff_diagonals = math.fabs(max((dist_ad/dist_bc), (dist_bc/dist_ad))-1) 
+                                        diff_sides_max = max(math.fabs((dist_ac/dist_bd)-1), math.fabs((dist_ab/dist_cd)-1))
+                                        rects.add(FoundRect([window[a], window[c], window[potential_d], window[b], window[a]], posts, diff_sides_max, diff_diagonals))
                         except ZeroDivisionError:
                             pass
     return rects
 
 class FoundRect:
-    def __init__(self, corners, posts):
+    def __init__(self, corners, posts, diff_sides_max, diff_diagonals):
         self.corners = corners.copy()
         corners.sort()
         self.ident = str(corners)
@@ -56,6 +57,8 @@ class FoundRect:
         for point in self.corners:
             rect_points.append((posts[point][1], posts[point][2]))
         self.polygon = Polygon(rect_points)
+        self.diff_sides_max = diff_sides_max
+        self.diff_diagonals = diff_diagonals
 
     def setId(self, id):
         self.id = id
