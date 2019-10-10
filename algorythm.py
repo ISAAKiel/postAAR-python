@@ -2,18 +2,14 @@ import time
 import math
 from multiprocessing import Pool
 from shapely.geometry import Polygon
-# from qgis.core import QgsMessageLog
-# from PyQt5.QtWidgets import Dialog, QProgressBar
 
-from .helper import * 
+from helper import * 
 
-def calcRectsInWindow (window, x_values, y_values, maximal_length_of_side, minimal_length_of_side, maximal_difference_between_comparable_sides_in_percent=0.1, dist_squared=True):
-    rects = []
-    start = time.time()
-    distance_in_window = calcDistanceInWindow(window, x_values, y_values, squared=dist_squared)
-    if dist_squared:
-        maximal_length_of_side *= maximal_length_of_side
-        minimal_length_of_side *= minimal_length_of_side
+def calcRectsInWindow (window, posts, maximal_length_of_side, minimal_length_of_side, maximal_difference_between_comparable_sides_in_percent=0.1):
+    rects = set()
+
+    distance_in_window = calcDistanceInWindow(window, posts)
+
     for a in range(len(window)):
         for b in range(len(window)):
             if a == b:
@@ -44,90 +40,142 @@ def calcRectsInWindow (window, x_values, y_values, maximal_length_of_side, minim
                                         math.fabs((dist_bc/dist_ad)-1) < maximal_difference_between_comparable_sides_in_percent and
                                         math.fabs((dist_ab/dist_cd)-1) < maximal_difference_between_comparable_sides_in_percent and
                                         math.fabs((dist_ac/dist_bd)-1) < maximal_difference_between_comparable_sides_in_percent):
-                                        diagon_comp = math.fabs(max((dist_ad/dist_bc),(dist_bc/dist_ad))-1) 
-                                        new_rect = [[window[a],window[c],window[potential_d],window[b],window[a]], 
-                                                max([math.fabs(dist_bc/dist_ad-1), math.fabs((dist_ab/dist_cd)-1)]),
-                                                diagon_comp]
-                                        add_to_list(new_rect,rects)
-                                        # print (str(new_rect))
+                                        diff_diagonals = math.fabs(max((dist_ad/dist_bc), (dist_bc/dist_ad))-1) 
+                                        diff_sides_max = max(math.fabs((dist_ac/dist_bd)-1), math.fabs((dist_ab/dist_cd)-1))
+                                        rects.add(FoundRect([window[a], window[c], window[potential_d], window[b], window[a]], posts, diff_sides_max, diff_diagonals))
                         except ZeroDivisionError:
                             pass
-    return [rects]
+    return rects
 
-def find_rects(windows, x_values, y_values, maximal_length_of_side, minimal_length_of_side, maximal_difference_between_comparable_sides_in_percent=0.1, multicore=False, number_of_computercores=4):
+class FoundRect:
+    def __init__(self, corners, posts, diff_sides_max, diff_diagonals):
+        self.corners = corners.copy()
+        corners.sort()
+        self.ident = str(corners)
+        
+        rect_points = []
+        for point in self.corners:
+            rect_points.append((posts[point][1], posts[point][2]))
+        self.polygon = Polygon(rect_points)
+        self.diff_sides_max = diff_sides_max
+        self.diff_diagonals = diff_diagonals
+
+    def setId(self, id):
+        self.id = id
+
+    def __eq__(self, other):
+        return isinstance(other, FoundRect) and self.ident == other.ident
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
+    def __hash__(self):
+        return hash(self.ident)
+        
+    def __lt__(self, other):
+        return self.ident < other.ident
+
+def find_rects(windows, posts, maximal_length_of_side, minimal_length_of_side, maximal_difference_between_comparable_sides_in_percent=0.1, number_of_computercores=4):
     start = time.time()
 
     calculated_rects = []
-    if multicore:
-        pool = Pool(processes=number_of_computercores)
 
-        results = []
-        for w in windows:
-            results.append(pool.apply_async(calcRectsInWindow, (w, x_values, y_values, maximal_length_of_side, minimal_length_of_side, maximal_difference_between_comparable_sides_in_percent, )))
+    pool = Pool(processes=number_of_computercores)
 
-        current_calculated_windows = 0
-        for result in results:
-            calculated_rects.append(result.get())
-            
-            current_calculated_windows += 1
-            print('\rCalculating rects {:3d}% - ({:3.3f}s)'.format(int(current_calculated_windows/len(windows)*100), (time.time()-start)), end='', flush=True)
-            # info2user='Calculating rects {:3d}% - ({:3.3f}s)'.format(int(current_calculated_windows/len(windows)*100), (time.time()-start))
-            # QgsMessageLog.logMessage(info2user, "Dataprocessing")
-            
-    else:
-        current_calculated_windows = 0
-        for w in windows:
-            calculated_rects.append(calcRectsInWindow(w, x_values, y_values, maximal_length_of_side, minimal_length_of_side, maximal_difference_between_comparable_sides_in_percent))
-        
-            current_calculated_windows += 1
-            print('\rCalculating rects {:3d}% - ({:3.3f}s)'.format(int(current_calculated_windows/len(windows)*100), (time.time()-start)), end='', flush=True)
-            # info2user='Calculating rects {:3d}% - ({:3.3f}s)'.format(int(current_calculated_windows/len(windows)*100), (time.time()-start))
-            # QgsMessageLog.logMessage(info2user, "Dataprocessing")
-            
-    print('\r\nConsolidating rects')
+    results = []
+    for w in windows:
+        results.append(pool.apply_async(calcRectsInWindow, (w, posts, maximal_length_of_side, minimal_length_of_side, maximal_difference_between_comparable_sides_in_percent, )))
+
+    current_calculated_windows = 0
+    for result in results:
+        calculated_rects.append(result.get())
+
+        current_calculated_windows += 1
+        print('\rCalculating rects {:3d}% - ({:3.3f}s)'.format(int(current_calculated_windows/len(windows)*100), (time.time()-start)), end='', flush=True)
+  
     found_rects = []
     for rects_in_window in calculated_rects:
-        print('\rConsolidating rects - {}'.format(len(found_rects)), end='')
-        # info2user='\rConsolidating rects - {}'.format(len(found_rects))
-        # QgsMessageLog.logMessage(info2user, "Dataprocessing")
-        for rect in rects_in_window[0]:
-            add_to_list(rect, found_rects)
-    print()
-    return found_rects
+        found_rects += rects_in_window
 
-def findBuildings( found_rects, x_values, y_values):
-    buildings = []
-    # info2user='\rFinding buildings = connected rectangles'
-    # QgsMessageLog.logMessage(info2user, "Dataprocessing")
-    # i=0
-    for base_rect in range(len(found_rects)):
-        building = []
-        building.append(found_rects[base_rect])
-        # i = i + 1
-        # info2user='\Rectangle part of a building? ' + str(i) + ' / ' + str(len(found_rects))
-        # QgsMessageLog.logMessage(info2user, "Dataprocessing")
-        for rect_to_add in range(len(found_rects)):
-            if rect_to_add == base_rect:
-                continue
-            if isPartOfBuilding(found_rects[rect_to_add], building, x_values, y_values):
-                building.append(found_rects[rect_to_add])
-        if len(building) > 1:
-            buildings.append(building)
+    return list(set(found_rects))
+
+def findBuildings(found_rects, posts, number_of_computercores=4):
+    start = time.time()
+    pool = Pool(processes=number_of_computercores)
+
+    building_lists = []
+    building_list = []
+    divider = int(len(found_rects)/100) + 1
+    i = 0
+    for rect in found_rects:
+        building_list.append(Building(rect))
+        i += 1
+        if i%divider == 0:
+            building_lists.append(building_list)
+            building_list = []
+    
+    results = []
+    for building_list in building_lists:    
+        results.append(pool.apply_async(constructBuilding, (building_list, found_rects, posts, )))
+
+    buildings = set()
+    current_checked_rects = 0
+    for result in results:
+        for building in result.get():
+            if len(building.rooms) > 1:
+                buildings.add(building)
+
+        current_checked_rects += 1
+        print('\rFinding buildings {:3d}% - ({:3.3f}s)'.format(int(current_checked_rects/len(results)*100), (time.time()-start)), end='', flush=True)
+
     return buildings
 
-def isPartOfBuilding(rect,building, x_values, y_values, strict=True):
+def constructBuilding(building_list, found_rects, posts):
+    for building in building_list:
+        for rect_to_add in found_rects:
+            if building.hasRoom(rect_to_add):
+                continue
+            if isPartOfBuilding(rect_to_add, building, posts):
+                building.addRoom(rect_to_add)
+        
+    return building_list
+
+class Building:
+    def __init__(self, rect):
+        self.rooms = set()
+        self.rooms.add(rect)
+        self.ident = str([rect])
+
+    def addRoom(self, rect):
+        self.rooms.add(rect)
+        self.ident = str(sorted(self.rooms))
+
+    def hasRoom(self, rect):
+        return rect in self.rooms
+
+    def __eq__(self, other):
+        return isinstance(other, Building) and self.ident == other.ident
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
+    def __hash__(self):
+        return hash(self.ident)
+
+
+def isPartOfBuilding(rect, building, posts, strict=True):
 
     connected = False
 
-    for part in building:
+    for part in building.rooms:
         point_of_part_in_rect = []
-        for point in part[0]:
-            if point in rect[0]:
+        for point in part.corners:
+            if point in rect.corners:
                 point_of_part_in_rect.append(point)
         if len(point_of_part_in_rect) == 2:
             if (
-                math.fabs(part[0].index(point_of_part_in_rect[0]) - part[0].index(point_of_part_in_rect[1])) == 1 and
-                math.fabs(rect[0].index(point_of_part_in_rect[0]) - rect[0].index(point_of_part_in_rect[1])) == 1
+                math.fabs(part.corners.index(point_of_part_in_rect[0]) - part.corners.index(point_of_part_in_rect[1])) == 1 and
+                math.fabs(rect.corners.index(point_of_part_in_rect[0]) - rect.corners.index(point_of_part_in_rect[1])) == 1
             ):
                 connected = True
                 break
@@ -136,20 +184,13 @@ def isPartOfBuilding(rect,building, x_values, y_values, strict=True):
         overlaps = 0
         contains = 0
 
-        rect_points = []
-        for point in rect[0]:
-            rect_points.append((x_values[point], y_values[point]))
-        rect_polygon = Polygon(rect_points)
-        for part in building:
-            part_points = []
-            for point in part[0]:
-                part_points.append((x_values[point], y_values[point]))
-
-            part_polygon = Polygon(part_points)
-            if part_polygon.overlaps(rect_polygon) or rect_polygon.overlaps(part_polygon):
-                overlaps += 1    
-            if part_polygon.contains(rect_polygon) or rect_polygon.contains(part_polygon):
-                contains += 1
+        for part in building.rooms:
+            if part.polygon.overlaps(rect.polygon) or rect.polygon.overlaps(part.polygon):
+                overlaps += 1
+                if strict:
+                    return False    
+            if part.polygon.contains(rect.polygon) or rect.polygon.contains(part.polygon):
+                return False
         
         if strict and overlaps == 0 and contains == 0:        
             return True

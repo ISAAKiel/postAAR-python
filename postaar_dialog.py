@@ -24,8 +24,8 @@
 
 import os
 
-from PyQt5 import uic, QtWidgets
-from PyQt5.QtWidgets import QMessageBox
+from PyQt5 import QtCore, uic, QtWidgets
+from PyQt5.QtWidgets import QMessageBox, QApplication
 from qgis.gui import QgsMessageBar
 from qgis.utils import iface
 
@@ -38,12 +38,11 @@ class postAARDialog(QtWidgets.QDialog, FORM_CLASS):
     def __init__(self, parent=None):
         """Constructor."""
         super(postAARDialog, self).__init__(parent)
-        # Set up the user interface from Designer through FORM_CLASS.
-        # After self.setupUi() you can access any designer object by doing
-        # self.<objectname>, and you can use autoconnect slots - see
-        # http://qt-project.org/doc/qt-4.8/designer-using-a-ui-file.html
-        # #widgets-and-dialogs-with-auto-connect
         self.setupUi(self)
+        self.setSizeGripEnabled(False);
+        self.setWindowFlags(QtCore.Qt.Dialog | QtCore.Qt.MSWindowsFixedSizeDialogHint)
+        self.showAdvanced(0)
+        self.advanced.stateChanged.connect(self.showAdvanced)
     
     def accept ( self ):
         validInput = self.checkvalues()
@@ -59,17 +58,25 @@ class postAARDialog(QtWidgets.QDialog, FORM_CLASS):
         # Input values have to be checked
         postlayer = self.cmb_layer_selected.currentLayer()
         postid = self.cmb_postid.currentField()
-        maximum_length_of_side = unicode(self.maximum_length_of_side.text())
-        minimum_length_of_side = unicode(self.minimum_length_of_side.text())
-        max_diff_side = unicode(self.maximal_length_difference.text())
+        maximum_length_of_side = self.maximum_length_of_side.value()
+        minimum_length_of_side = self.minimum_length_of_side.value()
+        max_diff_side = self.maximal_length_difference.value()
+
+        msg = "Please update the data\n\n"
+
+        if self.advanced.isChecked():
+            maximum_length_of_diagonal = self.maximum_length_of_diagonal.value()
+            minimum_length_of_diagonal = self.minimum_length_of_diagonal.value()
+            
+            if maximum_length_of_diagonal < minimum_length_of_diagonal:
+                msg = msg + "-  Maximal length of diagonal must be greater or equal to minimal length.\n"
 
         # Layer selected?
-        msg = "Please update the data\n\n"
         if not postlayer:
-            msg = "-  Please select (active) a Layer.\n" 
+            msg = msg + "-  Please select (active) a Layer.\n" 
         else:
             if postlayer.crs().isGeographic() == True:
-                msg = "-  Layer " + postlayer.name() + " is not projected. Please choose an projected reference system. \n"
+                msg = msg + "-  Layer " + postlayer.name() + " is not projected. Please choose an projected reference system. \n"
             # geometry type is point?
             if postlayer.geometryType() != 0:
                 msg = msg + "-  Layer " + postlayer.name() + " is not a point geometry. Please choose an point geometry.\n"
@@ -80,10 +87,10 @@ class postAARDialog(QtWidgets.QDialog, FORM_CLASS):
 
         # max length >= min length
         if maximum_length_of_side < minimum_length_of_side:
-            msg = msg + "-  Maximal length must be greater or equal to minimal length.\n"
+            msg = msg + "-  Maximal length of side must be greater or equal to minimal length.\n"
 
-        if len(msg)>30:
-            QMessageBox.critical(self, "postAAR input dialog", msg)
+        if len(msg) > 30:
+            QMessageBox.critical(self, "postAAR input error", msg)
             return False
 
         # the id column has unique values?
@@ -108,3 +115,20 @@ class postAARDialog(QtWidgets.QDialog, FORM_CLASS):
             if resp != 1024:
                 return False
         return True
+        
+    def showAdvanced(self, state):
+        if self.advanced.isChecked():
+            self.gBDiagonals.setVisible(True)
+            self.gBMisc.setVisible(True)
+        else:
+            result = [ self.size().width(), self.size().height() ]
+            result[1] -= self.gBDiagonals.size().height()
+            result[1] -= self.gBMisc.size().height()
+            self.gBDiagonals.setVisible(False)
+            self.gBMisc.setVisible(False)
+
+            while self.size().height() > result[1]:
+                QApplication.instance().sendPostedEvents()
+                self.resize( result[0], result[1] )
+        
+        self.adjustSize()
