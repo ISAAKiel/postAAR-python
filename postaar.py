@@ -254,8 +254,19 @@ class postAAR:
                     y = f.geometry().asPoint().y()
                     file.write(' '.join(str(i) for i in [pid, x, y]) + '\n')
 
-            subprocess.call([os.path.join(os.__file__.split("lib")[0],"python"), os.path.dirname(os.path.abspath(__file__)) + '\\postaar_algorithm.py', str(ntpath.basename(transferfile.name)), '-o', str(ntpath.basename(outputfile.name)), '-smax', str(maximum_length_of_side), '-smin', str(minimum_length_of_side), '-sdiff',str(max_diff_side), '-dmax', str(maximum_length_of_diagonal), '-dmin', str(minimum_length_of_diagonal), '-ddiff',str(max_diff_diagonal), '-cores', str(number_of_computercores)])
-            
+            import platform
+            executable = []
+            if platform.system() == 'Windows':
+                executable = [os.path.join(os.__file__.split("lib")[0],"python")]
+            if platform.system() == 'Linux' or platform.system() == 'Darwin':
+                executable = [sys.executable]
+                #urg!!!
+                from pkgutil import iter_modules
+                if not 'shapely' in (name for loader, name, ispkg in iter_modules()):
+                    subprocess.call(executable + ['-m', 'pip', 'install', 'shapely'])
+                
+            subprocess.check_call(executable + [ os.path.join(os.path.dirname(os.path.abspath(__file__)), 'postaar_algorithm.py'), str(ntpath.basename(transferfile.name)), '-o', str(ntpath.basename(outputfile.name)), '-smax', str(maximum_length_of_side), '-smin', str(minimum_length_of_side), '-sdiff',str(max_diff_side), '-dmax', str(maximum_length_of_diagonal), '-dmin', str(minimum_length_of_diagonal), '-ddiff',str(max_diff_diagonal), '-cores', str(number_of_computercores)])
+                        
             found_rects = []
             buildings = []
             with open(outputfile.name, 'r') as file:
@@ -371,3 +382,5 @@ class Rectangle:
         self.id = id
         self.diff_sides_max = diff_sides_max
         self.diff_diagonals = diff_diagonals
+
+
