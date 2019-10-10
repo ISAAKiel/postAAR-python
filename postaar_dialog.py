@@ -41,8 +41,6 @@ class postAARDialog(QtWidgets.QDialog, FORM_CLASS):
         self.setupUi(self)
         self.setSizeGripEnabled(False);
         self.setWindowFlags(QtCore.Qt.Dialog | QtCore.Qt.MSWindowsFixedSizeDialogHint)
-        self.showAdvanced(0)
-        self.advanced.stateChanged.connect(self.showAdvanced)
     
     def accept ( self ):
         validInput = self.checkvalues()
@@ -64,11 +62,10 @@ class postAARDialog(QtWidgets.QDialog, FORM_CLASS):
 
         msg = "Please update the data\n\n"
 
-        if self.advanced.isChecked():
-            maximum_length_of_diagonal = self.maximum_length_of_diagonal.value()
-            minimum_length_of_diagonal = self.minimum_length_of_diagonal.value()
-            
-            if maximum_length_of_diagonal < minimum_length_of_diagonal:
+        maximum_length_of_diagonal = self.maximum_length_of_diagonal.value()
+        minimum_length_of_diagonal = self.minimum_length_of_diagonal.value()
+        
+        if maximum_length_of_diagonal < minimum_length_of_diagonal:
                 msg = msg + "-  Maximal length of diagonal must be greater or equal to minimal length.\n"
 
         # Layer selected?
@@ -115,20 +112,3 @@ class postAARDialog(QtWidgets.QDialog, FORM_CLASS):
             if resp != 1024:
                 return False
         return True
-        
-    def showAdvanced(self, state):
-        if self.advanced.isChecked():
-            self.gBDiagonals.setVisible(True)
-            self.gBMisc.setVisible(True)
-        else:
-            result = [ self.size().width(), self.size().height() ]
-            result[1] -= self.gBDiagonals.size().height()
-            result[1] -= self.gBMisc.size().height()
-            self.gBDiagonals.setVisible(False)
-            self.gBMisc.setVisible(False)
-
-            while self.size().height() > result[1]:
-                QApplication.instance().sendPostedEvents()
-                self.resize( result[0], result[1] )
-        
-        self.adjustSize()

@@ -218,16 +218,10 @@ class postAAR:
             maximum_length_of_side = self.dlg.maximum_length_of_side.value()
             minimum_length_of_side = self.dlg.minimum_length_of_side.value()
             max_diff_side = self.dlg.maximal_length_difference.value()/100.0
-            if self.dlg.advanced.isChecked():
-                number_of_computercores = int(self.dlg.cores.value())
-                maximum_length_of_diagonal = self.dlg.maximum_length_of_diagonal.value()
-                minimum_length_of_diagonal = unicode(self.dlg.minimum_length_of_diagonal.value())
-                max_diff_diagonal = self.dlg.maximal_diagonal_difference.value()/100.0
-            else:
-                number_of_computercores = 4
-                maximum_length_of_diagonal = 1.5
-                minimum_length_of_diagonal = 0.0
-                max_diff_diagonal = 1.0
+            number_of_computercores = int(self.dlg.cores.value())
+            maximum_length_of_diagonal = self.dlg.maximum_length_of_diagonal.value()
+            minimum_length_of_diagonal = unicode(self.dlg.minimum_length_of_diagonal.value())
+            max_diff_diagonal = self.dlg.maximal_diagonal_difference.value()/100.0
                 
                 
 
