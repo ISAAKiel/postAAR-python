@@ -5,25 +5,28 @@ from shapely.geometry import Polygon
 
 from helper import * 
 
-def calcRectsInWindow (window, posts, maximal_length_of_side, minimal_length_of_side, maximal_difference_between_comparable_sides_in_percent=0.1):
+def calcRectsInWindow (window, posts, maximal_length_of_side, minimal_length_of_side, maximal_difference_between_comparable_sides_in_percent=0.1, maximal_length_of_diagonal=1.42, minimal_length_of_diagonal=1, maximal_difference_between_diagonals_in_percent=0.1):
     rects = set()
 
     distance_in_window = calcDistanceInWindow(window, posts)
-
+    
+    max_diagonal_dist = maximal_length_of_side * maximal_length_of_diagonal
+    min_diagonal_dist = minimal_length_of_side * minimal_length_of_diagonal
+    
     for a in range(len(window)):
         for b in range(len(window)):
             if a == b:
                 break
 
             dist_ab = distance_in_window[a][b]
-            if dist_ab < maximal_length_of_side and dist_ab > minimal_length_of_side:
+            if dist_ab <= maximal_length_of_side and dist_ab >= minimal_length_of_side:
                 for c in range(len(window)):
                     if c == b or c == a:
                         break
 
                     dist_ac = distance_in_window[a][c]
                     
-                    if dist_ac < maximal_length_of_side and dist_ac > minimal_length_of_side:
+                    if dist_ac <= maximal_length_of_side and dist_ac >= minimal_length_of_side:
                         try:
                             dist_bc = distance_in_window[b][c]
 
@@ -31,13 +34,20 @@ def calcRectsInWindow (window, posts, maximal_length_of_side, minimal_length_of_
                                 for potential_d in range(len(window)):
                                     dist_bd = distance_in_window[b][potential_d]
                                     dist_ad = distance_in_window[a][potential_d]
-                                    dist_cd = distance_in_window[c][potential_d]
+                                    dist_cd = distance_in_window[c][potential_d]                                    
+                                    
+                                    #mean_side_length = (dist_ab + dist_ac + dist_bd + dist_cd)/4
+                                    #max_diagonal_dist = mean_side_length * maximal_length_of_diagonal
+                                    #min_diagonal_dist = mean_side_length * minimal_length_of_diagonal
+                                    
                                     if (
-                                        dist_bd < maximal_length_of_side and 
-                                        dist_bd > minimal_length_of_side and
+                                        dist_bd <= maximal_length_of_side and 
+                                        dist_bd >= minimal_length_of_side and
                                         dist_bc > dist_bd and
                                         dist_ac < dist_ad and
-                                        math.fabs((dist_bc/dist_ad)-1) < maximal_difference_between_comparable_sides_in_percent and
+                                        dist_ad <= max_diagonal_dist and dist_ad >= min_diagonal_dist and
+                                        dist_bc <= max_diagonal_dist and dist_bc >= min_diagonal_dist and
+                                        math.fabs((dist_bc/dist_ad)-1) < maximal_difference_between_diagonals_in_percent and
                                         math.fabs((dist_ab/dist_cd)-1) < maximal_difference_between_comparable_sides_in_percent and
                                         math.fabs((dist_ac/dist_bd)-1) < maximal_difference_between_comparable_sides_in_percent):
                                         diff_diagonals = math.fabs(max((dist_ad/dist_bc), (dist_bc/dist_ad))-1) 
@@ -75,7 +85,7 @@ class FoundRect:
     def __lt__(self, other):
         return self.ident < other.ident
 
-def find_rects(windows, posts, maximal_length_of_side, minimal_length_of_side, maximal_difference_between_comparable_sides_in_percent=0.1, number_of_computercores=4):
+def find_rects(windows, posts, maximal_length_of_side, minimal_length_of_side, maximal_difference_between_comparable_sides_in_percent=0.1, maximal_length_of_diagonal=1.42, minimal_length_of_diagonal=1, maximal_difference_between_diagonals_in_percent=0.1, number_of_computercores=4):
     start = time.time()
 
     calculated_rects = []
@@ -84,7 +94,7 @@ def find_rects(windows, posts, maximal_length_of_side, minimal_length_of_side, m
 
     results = []
     for w in windows:
-        results.append(pool.apply_async(calcRectsInWindow, (w, posts, maximal_length_of_side, minimal_length_of_side, maximal_difference_between_comparable_sides_in_percent, )))
+        results.append(pool.apply_async(calcRectsInWindow, (w, posts, maximal_length_of_side, minimal_length_of_side, maximal_difference_between_comparable_sides_in_percent, maximal_length_of_diagonal, minimal_length_of_diagonal, maximal_difference_between_diagonals_in_percent, )))
 
     current_calculated_windows = 0
     for result in results:
