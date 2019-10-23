@@ -34,7 +34,7 @@
   </property>
   <property name="windowIcon">
    <iconset>
-    <normaloff>:/plugins/postAAR/img/icon.png</normaloff>:/plugins/postAAR/img/icon.png</iconset>
+    <normaloff>:/plugins/postAAR/img/postAAR.ico</normaloff>:/plugins/postAAR/img/postAAR.ico</iconset>
   </property>
   <property name="modal">
    <bool>true</bool>
@@ -69,7 +69,7 @@
         <string/>
        </property>
        <property name="pixmap">
-        <pixmap>:/plugins/postAAR/img/icon.png</pixmap>
+        <pixmap>:/plugins/postAAR/img/postAAR.ico</pixmap>
        </property>
        <property name="scaledContents">
         <bool>true</bool>
@@ -156,7 +156,7 @@ text-decoration: underline;</string>
           <property name="minimumContentsLength">
            <number>1</number>
           </property>
-          <property name="showCrs" stdset="0">
+          <property name="showCrs">
            <bool>true</bool>
           </property>
           <property name="Filters" stdset="0">
@@ -224,7 +224,7 @@ text-decoration: underline;</string>
           </sizepolicy>
          </property>
          <property name="currentIndex">
-          <number>0</number>
+          <number>1</number>
          </property>
          <widget class="QWidget" name="tab_sides">
           <attribute name="title">
