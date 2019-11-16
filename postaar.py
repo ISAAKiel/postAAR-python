@@ -268,7 +268,7 @@ class postAAR:
             if not 'shapely' in (name for loader, name, ispkg in iter_modules()):
                 subprocess.call(executable + ['-m', 'pip', 'install', 'shapely'])
                 
-            subprocess.check_call(executable + [ os.path.join(os.path.dirname(os.path.abspath(__file__)), 'postaar_algorithm.py'), str(ntpath.basename(transferfile.name)), '-o', str(ntpath.basename(outputfile.name)), '-smax', str(maximum_length_of_side), '-smin', str(minimum_length_of_side), '-sdiff',str(max_diff_side), '-dmax', str(maximum_length_of_diagonal), '-dmin', str(minimum_length_of_diagonal), '-ddiff',str(max_diff_diagonal), '-cores', str(number_of_computercores)])
+            subprocess.check_call(executable + [ os.path.join(os.path.dirname(os.path.abspath(__file__)), 'postaar_algorithm.py'), str(ntpath.basename(transferfile.name)), '-o', str(ntpath.basename(outputfile.name)), '-smax', str(maximum_length_of_side), '-smin', str(minimum_length_of_side), '-sdiff',str(max_diff_side), '-dmax', str(maximum_length_of_diagonal), '-dmin', str(minimum_length_of_diagonal), '-ddiff',str(max_diff_diagonal), '-cores', str(number_of_computercores)], shell=True)
                         
             found_rects = []
             buildings = []
