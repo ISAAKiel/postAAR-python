@@ -57,6 +57,18 @@ if __name__ == '__main__':
         buildings = alg.findBuildings(found_rects, posts, number_of_computercores=arguments.number_of_computercores)
         print('\nFound {} buildings in {:.3f}s'.format(len(buildings), time.time()-start))
 
+        from shapely.geometry import Polygon, MultiPoint
+        minimum_bounding_rectangles = []
+        for building in buildings:
+            points_of_building = []
+            for room in building.rooms:
+                for corner in room.corners:
+                    points_of_building.append((posts[corner][1], posts[corner][2]))
+            minimum_bounding_rectangles.append([(x, y) for x, y in list(MultiPoint(points_of_building).minimum_rotated_rectangle.exterior.coords)])
+
+        for minimum_bounding_rectangle in minimum_bounding_rectangles:
+            print(str(minimum_bounding_rectangle) + '\n')
+
         print('Writing data to file', arguments.outputfile)
         posts = []
         with open(os.path.join(tempfile.gettempdir(), arguments.outputfile), 'w') as f:
@@ -66,5 +78,7 @@ if __name__ == '__main__':
             f.write('buildings\n')
             for building in buildings:
                 f.write(" ".join(str(i.id) for i in building.rooms) + '\n')
-    except:    
+
+    except:
+        print(str(sys.exc_info()))    
         input("\npress Enter to continue")

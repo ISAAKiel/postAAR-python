@@ -313,6 +313,19 @@ class postAAR:
                 for building in _buildings:
                     buildings.append([i.id for i in building.rooms])
 
+                
+                from shapely.geometry import Polygon, MultiPoint
+                minimum_bounding_rectangles = []
+                for building in _buildings:
+                    points_of_building = []
+                    for room in building.rooms:
+                        for corner in room.corners:
+                            points_of_building.append((posts[corner][1], posts[corner][2]))
+                    minimum_bounding_rectangles.append([(x, y) for x, y in list(MultiPoint(points_of_building).minimum_rotated_rectangle.exterior.coords)])
+
+                for minimum_bounding_rectangle in minimum_bounding_rectangles:
+                    print(str(minimum_bounding_rectangle) + '\n')
+
             parameter_name_string = '(' + ("_".join(str(i) for i in [maximum_length_of_side, minimum_length_of_side, max_diff_side, maximum_length_of_diagonal, minimum_length_of_diagonal, max_diff_diagonal])) + ')'
                 
             ###############################
@@ -398,6 +411,31 @@ class postAAR:
                     fet = QgsFeature()
                     fet.setGeometry(building_geom)
                     fet.setAttributes([PIDs, rectan_IDs, count_rectangles, mean_max_diff_sides, mean_diff_diagonals])
+                    pr.addFeatures([fet])
+                    
+                    
+            ########################################
+            # 2. add bounding_rects = connected rectangles
+            if len(buildings) > 0:
+                # Creat results layer in memory
+                results_layer = iface.addVectorLayer("Polygon?crs="+postlayer_crs, postlayer.name() + "_minimum_bounding_rectangles" + parameter_name_string, "memory")
+                # if the loading of the layer fails, give a message
+                if not results_layer:
+                    criticalMessageToBar(self, 'Error', 'Failed to load the file '+ results_shape)
+                # add basic attributes
+                pr = results_layer.dataProvider()
+                results_layer.updateFields()
+                #get the pointlist of the rectangle for the geom and collect data
+                for minimum_bounding_rectangle in minimum_bounding_rectangles:
+                    #print(r)
+                    listPoints = [] # Points for geometry
+                    PIDs = [] # list of point ID's
+                    #print (plist)
+                    for p in minimum_bounding_rectangle:
+                        listPoints.append(QgsPointXY(p[0], p[1]))
+                    # build geometry
+                    fet = QgsFeature()
+                    fet.setGeometry(QgsGeometry.fromPolygonXY ([listPoints]))
                     pr.addFeatures([fet])
 
 class Rectangle:
