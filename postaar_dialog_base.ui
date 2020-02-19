@@ -121,6 +121,21 @@ text-decoration: underline;</string>
      </item>
     </layout>
    </item>
+   <item>
+    <widget class="QLabel" name="lWarning">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">font: 75 18pt &quot;MS Shell Dlg 2&quot;;
+text-decoration: underline;
+color: rgb(255, 0, 0);</string>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+    </widget>
+   </item>
    <item alignment="Qt::AlignLeft|Qt::AlignVCenter">
     <widget class="QGroupBox" name="gbLayer">
      <property name="title">
@@ -753,6 +768,32 @@ text-decoration: underline;</string>
                 </spacer>
                </item>
               </layout>
+             </item>
+            </layout>
+           </widget>
+          </item>
+          <item>
+           <widget class="QGroupBox" name="gBDependencies">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
+            <property name="title">
+             <string>Dependencies to install</string>
+            </property>
+            <layout class="QVBoxLayout" name="verticalLayout_19">
+             <item>
+              <widget class="QLabel" name="lUnfilledDependencies">
+               <property name="text">
+                <string/>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="pBDependenciesInstall">
+               <property name="text">
+                <string>Install</string>
+               </property>
+              </widget>
              </item>
             </layout>
            </widget>

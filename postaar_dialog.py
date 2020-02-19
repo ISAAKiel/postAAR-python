@@ -41,7 +41,11 @@ class postAARDialog(QtWidgets.QDialog, FORM_CLASS):
         self.setupUi(self)
         self.setSizeGripEnabled(False);
         self.setWindowFlags(QtCore.Qt.Dialog | QtCore.Qt.MSWindowsFixedSizeDialogHint)
-        
+
+        self.lWarning.hide()
+        self.checkDependencies()
+        self.pBDependenciesInstall.clicked.connect(self.installDependencies)
+
         self.pBSelectPythonDistribution.clicked.connect(self.selectPythonDistribution)
 
         if not self.lEPythonDistribution.text():
@@ -55,7 +59,30 @@ class postAARDialog(QtWidgets.QDialog, FORM_CLASS):
             self.lEPythonDistribution.setText(str(executable))
 
     def selectPythonDistribution(self):
-        self.lEPythonDistribution.setText(str(QFileDialog.getOpenFileName(self, 'Select distribution')[0]))
+        self.lEPythonDistribution.setText(str(QFileDialog.getOpenFileName(self, 'Select python distribution')[0]))
+
+    def checkDependencies(self):
+        self.gBDependencies.setEnabled(False)
+        self.lWarning.hide()
+        self.lWarning.setText('')
+        self.lUnfilledDependencies.setText('')
+        from pkgutil import iter_modules
+        if not 'shapely' in (name for loader, name, ispkg in iter_modules()):
+            self.lWarning.show()
+            self.lWarning.setText(self.lWarning.text() + 'Package "shapely" is not installed.')
+            self.lUnfilledDependencies.setText(self.lUnfilledDependencies.text() + 'shapely\n')
+            self.gBDependencies.setEnabled(True)
+
+    def installDependencies(self):
+        self.selectPythonDistribution()
+
+        from pkgutil import iter_modules
+        import subprocess
+        if not 'shapely' in (name for loader, name, ispkg in iter_modules()):
+            subprocess.call([self.lEPythonDistribution.text(), '-m', 'pip', 'install', 'shapely'])
+        
+        self.checkDependencies()
+        
 
     def accept ( self ):
         validInput = self.checkvalues()
