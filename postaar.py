@@ -43,6 +43,7 @@ import os
 import tempfile
 import sys
 import ntpath
+import time
 
 
 
@@ -218,7 +219,6 @@ class postAAR:
             maximum_length_of_side = self.dlg.maximum_length_of_side.value()
             minimum_length_of_side = self.dlg.minimum_length_of_side.value()
             max_diff_side = self.dlg.maximal_length_difference.value()/100.0
-            number_of_computercores = int(self.dlg.cores.value())
             maximum_length_of_diagonal = self.dlg.maximum_length_of_diagonal.value()/100.0
             minimum_length_of_diagonal = self.dlg.minimum_length_of_diagonal.value()/100.0
             max_diff_diagonal = self.dlg.maximal_diagonal_difference.value()/100.0
@@ -243,40 +243,75 @@ class postAAR:
 
             ########################################
             # Do the calculation by calling postaar_algorithm
+            if self.dlg.gBUseMulticore.isChecked() == True:
+                number_of_computercores = int(self.dlg.cores.value())
+                
+                transferfile = tempfile.NamedTemporaryFile(mode='w+t', prefix='postAAR', delete=False)
+                outputfile = tempfile.NamedTemporaryFile(mode='w+t', prefix='postAAR', delete=False)
+                
+                with open(transferfile.name, 'w') as file:
+                    for f in postlayer.getFeatures():
+                        pid = f[postid]
+                        x = f.geometry().asPoint().x()
+                        y = f.geometry().asPoint().y()
+                        file.write(' '.join(str(i) for i in [pid, x, y]) + '\n')
 
-            transferfile = tempfile.NamedTemporaryFile(mode='w+t', prefix='postAAR', delete=False)
-            outputfile = tempfile.NamedTemporaryFile(mode='w+t', prefix='postAAR', delete=False)
-            
-            with open(transferfile.name, 'w') as file:
-                for f in postlayer.getFeatures():
-                    pid = f[postid]
-                    x = f.geometry().asPoint().x()
-                    y = f.geometry().asPoint().y()
-                    file.write(' '.join(str(i) for i in [pid, x, y]) + '\n')
+                subprocess.call([os.path.join(os.__file__.split("lib")[0],"python"), os.path.dirname(os.path.abspath(__file__)) + '\\postaar_algorithm.py', str(ntpath.basename(transferfile.name)), '-o', str(ntpath.basename(outputfile.name)), '-smax', str(maximum_length_of_side), '-smin', str(minimum_length_of_side), '-sdiff',str(max_diff_side), '-dmax', str(maximum_length_of_diagonal), '-dmin', str(minimum_length_of_diagonal), '-ddiff',str(max_diff_diagonal), '-cores', str(number_of_computercores)])
+                
+                found_rects = []
+                buildings = []
+                with open(outputfile.name, 'r') as file:
+                    parse_buildings = False
+                    for line in file:
+                        data = line.split()
+                        if data[0] == 'rectangles':
+                            parse_buildings = False
+                            continue
+                        if data[0] == 'buildings':
+                            parse_buildings = True
+                            continue
+                        if parse_buildings:
+                            buildings.append([int(float(rect)) for rect in data])
+                        else:
+                            found_rects.append(Rectangle(int(data[0]), [int(float(point)) for point in data[1:5]], float(data[5]), float(data[6]) ))
 
-            subprocess.call([os.path.join(os.__file__.split("lib")[0],"python"), os.path.dirname(os.path.abspath(__file__)) + '\\postaar_algorithm.py', str(ntpath.basename(transferfile.name)), '-o', str(ntpath.basename(outputfile.name)), '-smax', str(maximum_length_of_side), '-smin', str(minimum_length_of_side), '-sdiff',str(max_diff_side), '-dmax', str(maximum_length_of_diagonal), '-dmin', str(minimum_length_of_diagonal), '-ddiff',str(max_diff_diagonal), '-cores', str(number_of_computercores)])
-            
-            found_rects = []
-            buildings = []
-            with open(outputfile.name, 'r') as file:
-                parse_buildings = False
-                for line in file:
-                    data = line.split()
-                    if data[0] == 'rectangles':
-                        parse_buildings = False
-                        continue
-                    if data[0] == 'buildings':
-                        parse_buildings = True
-                        continue
-                    if parse_buildings:
-                        buildings.append([int(float(rect)) for rect in data])
-                    else:
-                        found_rects.append(Rectangle(int(data[0]), [int(float(point)) for point in data[1:5]], float(data[5]), float(data[6]) ))
+                transferfile.close()
+                os.unlink(transferfile.name)
+                outputfile.close()
+                os.unlink(outputfile.name)
+            else:
+                import helper as hlp
+                import algorythm as alg
 
-            transferfile.close()
-            os.unlink(transferfile.name)
-            outputfile.close()
-            os.unlink(outputfile.name)
+                start = time.time()
+                
+                print('Loading data')
+                posts = postslist
+
+                print('Building windows')
+                windows = hlp.buildWindows(posts, maximum_length_of_side)
+                print('Build windows (', (time.time()-start), 's)', sep='')
+
+                print('Finding rects', end='' , flush=True)
+                _found_rects = alg.find_rects(windows, posts, maximum_length_of_side, minimum_length_of_side, max_diff_side, maximum_length_of_diagonal, minimum_length_of_diagonal, max_diff_diagonal, number_of_computercores=1)
+                print('\nFound {} rects in {:.3f}s'.format(len(_found_rects), time.time()-start))
+
+                #Add ids to rects
+                id = 0
+                for rect in _found_rects:
+                    rect.setId(id)
+                    id += 1
+
+                print('Finding buildings', end='', flush=True)
+                _buildings = alg.findBuildings(_found_rects, posts, number_of_computercores=1)
+                print('\nFound {} buildings in {:.3f}s'.format(len(_buildings), time.time()-start))
+
+                found_rects = []
+                for rect in _found_rects:
+                    found_rects.append(Rectangle(rect.id, rect.corners, rect.diff_sides_max, rect.diff_diagonals))
+                buildings = []
+                for building in _buildings:
+                    buildings.append([i.id for i in building.rooms])
 
             parameter_name_string = '(' + ("_".join(str(i) for i in [maximum_length_of_side, minimum_length_of_side, max_diff_side, maximum_length_of_diagonal, minimum_length_of_diagonal, max_diff_diagonal])) + ')'
                 

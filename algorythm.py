@@ -89,55 +89,80 @@ def find_rects(windows, posts, maximal_length_of_side, minimal_length_of_side, m
     start = time.time()
 
     calculated_rects = []
+    if number_of_computercores > 1:
+        pool = Pool(processes=number_of_computercores)
 
-    pool = Pool(processes=number_of_computercores)
+        results = []
+        for w in windows:
+            results.append(pool.apply_async(calcRectsInWindow, (w, posts, maximal_length_of_side, minimal_length_of_side, maximal_difference_between_comparable_sides_in_percent, maximal_length_of_diagonal, minimal_length_of_diagonal, maximal_difference_between_diagonals_in_percent, )))
 
-    results = []
-    for w in windows:
-        results.append(pool.apply_async(calcRectsInWindow, (w, posts, maximal_length_of_side, minimal_length_of_side, maximal_difference_between_comparable_sides_in_percent, maximal_length_of_diagonal, minimal_length_of_diagonal, maximal_difference_between_diagonals_in_percent, )))
+        current_calculated_windows = 0
+        for result in results:
+            calculated_rects.append(result.get())
 
-    current_calculated_windows = 0
-    for result in results:
-        calculated_rects.append(result.get())
-
-        current_calculated_windows += 1
-        print('\rCalculating rects {:3d}% - ({:3.3f}s)'.format(int(current_calculated_windows/len(windows)*100), (time.time()-start)), end='', flush=True)
-  
-    found_rects = []
-    for rects_in_window in calculated_rects:
-        found_rects += rects_in_window
+            current_calculated_windows += 1
+            print('\rCalculating rects {:3d}% - ({:3.3f}s)'.format(int(current_calculated_windows/len(windows)*100), (time.time()-start)), end='', flush=True)
+    
+        found_rects = []
+        for rects_in_window in calculated_rects:
+            found_rects += rects_in_window
+    else:
+        results = []
+        current_calculated_windows = 0
+        for w in windows:
+            calculated_rects.append(calcRectsInWindow(w, posts, maximal_length_of_side, minimal_length_of_side, maximal_difference_between_comparable_sides_in_percent, maximal_length_of_diagonal, minimal_length_of_diagonal, maximal_difference_between_diagonals_in_percent ))
+            current_calculated_windows += 1
+            print('\rCalculating rects {:3d}% - ({:3.3f}s)'.format(int(current_calculated_windows/len(windows)*100), (time.time()-start)), end='', flush=True)
+    
+        found_rects = []
+        for rects_in_window in calculated_rects:
+            found_rects += rects_in_window
 
     return list(set(found_rects))
 
 def findBuildings(found_rects, posts, number_of_computercores=4):
     start = time.time()
-    pool = Pool(processes=number_of_computercores)
 
-    building_lists = []
-    building_list = []
-    divider = int(len(found_rects)/100) + 1
-    i = 0
-    for rect in found_rects:
-        building_list.append(Building(rect))
-        i += 1
-        if i%divider == 0:
-            building_lists.append(building_list)
-            building_list = []
-    
-    results = []
-    for building_list in building_lists:    
-        results.append(pool.apply_async(constructBuilding, (building_list, found_rects, posts, )))
+    if number_of_computercores > 1:
+        pool = Pool(processes=number_of_computercores)
 
-    buildings = set()
-    current_checked_rects = 0
-    for result in results:
-        for building in result.get():
+        building_lists = []
+        building_list = []
+        divider = int(len(found_rects)/100) + 1
+        i = 0
+        for rect in found_rects:
+            building_list.append(Building(rect))
+            i += 1
+            if i%divider == 0:
+                building_lists.append(building_list)
+                building_list = []
+        
+        results = []
+        for building_list in building_lists:    
+            results.append(pool.apply_async(constructBuilding, (building_list, found_rects, posts, )))
+
+        buildings = set()
+        current_checked_rects = 0
+        for result in results:
+            for building in result.get():
+                if len(building.rooms) > 1:
+                    buildings.add(building)
+
+            current_checked_rects += 1
+            print('\rFinding buildings {:3d}% - ({:3.3f}s)'.format(int(current_checked_rects/len(results)*100), (time.time()-start)), end='', flush=True)
+    else:
+        building_list = []
+        for rect in found_rects:
+            building_list.append(Building(rect))
+        
+        buildings = set()
+        current_checked_rects = 0
+        for building in constructBuilding(building_list, found_rects, posts ):
             if len(building.rooms) > 1:
                 buildings.add(building)
 
-        current_checked_rects += 1
-        print('\rFinding buildings {:3d}% - ({:3.3f}s)'.format(int(current_checked_rects/len(results)*100), (time.time()-start)), end='', flush=True)
-
+            current_checked_rects += 1
+            print('\rFinding buildings {:3d}% - ({:3.3f}s)'.format(int(current_checked_rects/len(building_list)*100), (time.time()-start)), end='', flush=True)
     return buildings
 
 def constructBuilding(building_list, found_rects, posts):

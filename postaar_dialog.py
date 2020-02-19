@@ -25,7 +25,7 @@
 import os
 
 from PyQt5 import QtCore, uic, QtWidgets
-from PyQt5.QtWidgets import QMessageBox, QApplication
+from PyQt5.QtWidgets import QMessageBox, QApplication, QFileDialog
 from qgis.gui import QgsMessageBar
 from qgis.utils import iface
 
@@ -41,7 +41,22 @@ class postAARDialog(QtWidgets.QDialog, FORM_CLASS):
         self.setupUi(self)
         self.setSizeGripEnabled(False);
         self.setWindowFlags(QtCore.Qt.Dialog | QtCore.Qt.MSWindowsFixedSizeDialogHint)
-    
+        
+        self.pBSelectPythonDistribution.clicked.connect(self.selectPythonDistribution)
+
+        if not self.lEPythonDistribution.text():
+            import platform
+            executable = ""
+            if platform.system() == 'Windows':
+                executable = os.path.join(os.__file__.split("lib")[0],"python")
+            if platform.system() == 'Linux' or platform.system() == 'Darwin':
+                executable = sys.executable
+
+            self.lEPythonDistribution.setText(str(executable))
+
+    def selectPythonDistribution(self):
+        self.lEPythonDistribution.setText(str(QFileDialog.getOpenFileName(self, 'Select distribution')[0]))
+
     def accept ( self ):
         validInput = self.checkvalues()
         if validInput:
