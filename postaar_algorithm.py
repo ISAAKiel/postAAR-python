@@ -53,7 +53,7 @@ if __name__ == '__main__':
         id += 1
 
     print('Finding buildings', end='', flush=True)
-    buildings = alg.findBuildings(found_rects, posts)
+    buildings = alg.findBuildings(found_rects, posts, number_of_computercores==arguments.number_of_computercores)
     print('\nFound {} buildings in {:.3f}s'.format(len(buildings), time.time()-start))
 
     print('Writing data to file', arguments.outputfile)
