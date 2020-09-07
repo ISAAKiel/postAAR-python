@@ -4,9 +4,8 @@ import tempfile
 import os
 import sys
 
-import helper as hlp
-import algorythm as alg
-    
+from algorythm import algorythm as alg, helper as hlp
+
 
 # Argumente: filename, returnfilename, maximal_length_of_side, minimal_length_of_side, maximal_difference_between_comparable_sides_in_percent, number_of_computercores
 def parseCommandline():

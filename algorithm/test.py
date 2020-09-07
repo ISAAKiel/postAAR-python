@@ -45,6 +45,6 @@ with open(transferfilename, 'w') as transferfile:
                     pass
 
 # Argumente: filename, returnfilename, maximal_length_of_side, minimal_length_of_side, maximal_difference_between_comparable_sides_in_percent, number_of_computercores
-print(subprocess.call(["python", "postaar_algorithm.py", str(transferfilename), '-o', str(returnfilename), '-smax', str(maximal_length_of_side), '-smin', str(minimal_length_of_side), '-diff',str(maximal_difference_between_comparable_sides_in_percent), '-cores', str(number_of_computercores)]))
+print(subprocess.call(["python", "commandline_runner.py", str(transferfilename), '-o', str(returnfilename), '-smax', str(maximal_length_of_side), '-smin', str(minimal_length_of_side), '-diff',str(maximal_difference_between_comparable_sides_in_percent), '-cores', str(number_of_computercores)]))
 
 

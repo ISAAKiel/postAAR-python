@@ -100,15 +100,8 @@ class postAARDialog(QtWidgets.QDialog, FORM_CLASS):
         postid = self.cmb_postid.currentField()
         maximum_length_of_side = self.maximum_length_of_side.value()
         minimum_length_of_side = self.minimum_length_of_side.value()
-        max_diff_side = self.maximal_length_difference.value()
 
         msg = "Please update the data\n\n"
-
-        maximum_length_of_diagonal = self.maximum_length_of_diagonal.value()
-        minimum_length_of_diagonal = self.minimum_length_of_diagonal.value()
-        
-        if maximum_length_of_diagonal < minimum_length_of_diagonal:
-                msg = msg + "-  Maximal length of diagonal must be greater or equal to minimal length.\n"
 
         # Layer selected?
         if not postlayer:

@@ -28,6 +28,8 @@ from qgis.core import *
 from qgis.gui import QgsMessageBar
 from qgis.utils import iface
 
+from .algorithm import helper as hlp
+from .algorithm import algorithm as alg
 
 # Initialize Qt resources from file resources.py
 from .resources import *
@@ -218,10 +220,7 @@ class postAAR:
             postid = self.dlg.cmb_postid.currentField()
             maximum_length_of_side = self.dlg.maximum_length_of_side.value()
             minimum_length_of_side = self.dlg.minimum_length_of_side.value()
-            max_diff_side = self.dlg.maximal_length_difference.value()/100.0
-            maximum_length_of_diagonal = self.dlg.maximum_length_of_diagonal.value()/100.0
-            minimum_length_of_diagonal = self.dlg.minimum_length_of_diagonal.value()/100.0
-            max_diff_diagonal = self.dlg.maximal_diagonal_difference.value()/100.0
+            max_area_diff = self.dlg.maximal_bounding_area_difference.value()/100.0
                 
                 
 
@@ -256,7 +255,7 @@ class postAAR:
                         y = f.geometry().asPoint().y()
                         file.write(' '.join(str(i) for i in [pid, x, y]) + '\n')
 
-                subprocess.call([self.dlg.lEPythonDistribution.text(), os.path.dirname(os.path.abspath(__file__)) + '\\postaar_algorithm.py', str(ntpath.basename(transferfile.name)), '-o', str(ntpath.basename(outputfile.name)), '-smax', str(maximum_length_of_side), '-smin', str(minimum_length_of_side), '-sdiff',str(max_diff_side), '-dmax', str(maximum_length_of_diagonal), '-dmin', str(minimum_length_of_diagonal), '-ddiff',str(max_diff_diagonal), '-cores', str(number_of_computercores)])
+                subprocess.call([self.dlg.lEPythonDistribution.text(), os.path.dirname(os.path.abspath(__file__)) + '\\commandline_runner.py', str(ntpath.basename(transferfile.name)), '-o', str(ntpath.basename(outputfile.name)), '-smax', str(maximum_length_of_side), '-smin', str(minimum_length_of_side), '-sdiff',str(max_area_diff), '-dmax', str(maximum_length_of_diagonal), '-dmin', str(minimum_length_of_diagonal), '-ddiff',str(max_diff_diagonal), '-cores', str(number_of_computercores)])
                 
                 found_rects = []
                 buildings = []
@@ -280,8 +279,6 @@ class postAAR:
                 outputfile.close()
                 os.unlink(outputfile.name)
             else:
-                import helper as hlp
-                import algorythm as alg
 
                 start = time.time()
                 
@@ -293,7 +290,7 @@ class postAAR:
                 print('Build windows (', (time.time()-start), 's)', sep='')
 
                 print('Finding rects', end='' , flush=True)
-                _found_rects = alg.find_rects(windows, posts, maximum_length_of_side, minimum_length_of_side, max_diff_side, maximum_length_of_diagonal, minimum_length_of_diagonal, max_diff_diagonal, number_of_computercores=1)
+                _found_rects = alg.find_rects(windows, posts, maximum_length_of_side, minimum_length_of_side, max_area_diff, number_of_computercores=1)
                 print('\nFound {} rects in {:.3f}s'.format(len(_found_rects), time.time()-start))
 
                 #Add ids to rects
@@ -301,19 +298,20 @@ class postAAR:
                 for rect in _found_rects:
                     rect.setId(id)
                     id += 1
-
-                print('Finding buildings', end='', flush=True)
-                _buildings = alg.findBuildings(_found_rects, posts, number_of_computercores=1)
-                print('\nFound {} buildings in {:.3f}s'.format(len(_buildings), time.time()-start))
+                if self.dlg.gBCalcBuildings.isChecked():
+                    print('Finding buildings', end='', flush=True)
+                    _buildings = alg.findBuildings(_found_rects, posts, number_of_computercores=1)
+                    print('\nFound {} buildings in {:.3f}s'.format(len(_buildings), time.time()-start))
 
                 found_rects = []
                 for rect in _found_rects:
                     found_rects.append(Rectangle(rect.id, rect.corners, rect.diff_sides_max, rect.diff_diagonals))
                 buildings = []
-                for building in _buildings:
-                    buildings.append([i.id for i in building.rooms])
+                if self.dlg.gBCalcBuildings.isChecked():
+                    for building in _buildings:
+                        buildings.append([i.id for i in building.rooms])
 
-            parameter_name_string = '(' + ("_".join(str(i) for i in [maximum_length_of_side, minimum_length_of_side, max_diff_side, maximum_length_of_diagonal, minimum_length_of_diagonal, max_diff_diagonal])) + ')'
+            parameter_name_string = '(' + ("_".join(str(i) for i in [maximum_length_of_side, minimum_length_of_side, max_area_diff])) + ')'
                 
             ###############################
             # Plot results
@@ -355,50 +353,51 @@ class postAAR:
 
             ########################################
             # 2. add buildungs = connected rectangles
-            if len(buildings) > 0:
-                # Creat results layer in memory
-                results_layer = iface.addVectorLayer("Polygon?crs="+postlayer_crs, postlayer.name() + "_found_buildings" + parameter_name_string, "memory")
-                # if the loading of the layer fails, give a message
-                if not results_layer:
-                    criticalMessageToBar(self, 'Error', 'Failed to load the file '+ results_shape)
-                # add basic attributes
-                pr = results_layer.dataProvider()
-                pr.addAttributes([QgsField("PostIDs", QVariant.String),
-                                    QgsField("rectan_IDs", QVariant.String),
-                                    QgsField("count_rectangles",QVariant.Int),
-                                    QgsField("mean_max_diff_sides", QVariant.Double),
-                                    QgsField("mean_diff_diagonals", QVariant.Double)])
-                results_layer.updateFields()
-                #get the pointlist of the rectangle for the geom and collect data
-                for building in buildings:
-                    PIDs = []
-                    rectan_IDs = []
-                    diff_side_rectangles = []
-                    diff_diagonals = []
-                    rectangles_geom = []
-                    for room in building:
-                        listPoints = []
-                        for p in found_rects[room].corners:
-                            listPoints.append(QgsPointXY(x_values[p], y_values[p]))
-                            PIDs.append (postslist[p][0])
-                        diff_side_rectangles.append(found_rects[room].diff_sides_max)
-                        diff_diagonals.append(found_rects[room].diff_diagonals)
-                        rectan_IDs.append(room)
-                        rectangles_geom.append(QgsGeometry.fromPolygonXY ([listPoints]))
-                    building_geom = rectangles_geom[0]
-                    for rectan in rectangles_geom:
-                        building_geom = building_geom.combine(rectan)
-                    # aggregate the attributes of the building
-                    PIDs = unicode(set(PIDs))[1:-1]
-                    rectan_IDs = unicode(rectan_IDs)[1:-1]
-                    count_rectangles = len(building)
-                    mean_max_diff_sides = sum(diff_side_rectangles)/len(diff_side_rectangles)
-                    mean_diff_diagonals = sum(diff_diagonals)/len(diff_diagonals)
-                    # create building feature 
-                    fet = QgsFeature()
-                    fet.setGeometry(building_geom)
-                    fet.setAttributes([PIDs, rectan_IDs, count_rectangles, mean_max_diff_sides, mean_diff_diagonals])
-                    pr.addFeatures([fet])
+            if self.dlg.gBCalcBuildings.isChecked():
+                if len(buildings) > 0:
+                    # Creat results layer in memory
+                    results_layer = iface.addVectorLayer("Polygon?crs="+postlayer_crs, postlayer.name() + "_found_buildings" + parameter_name_string, "memory")
+                    # if the loading of the layer fails, give a message
+                    if not results_layer:
+                        criticalMessageToBar(self, 'Error', 'Failed to load the file '+ results_shape)
+                    # add basic attributes
+                    pr = results_layer.dataProvider()
+                    pr.addAttributes([QgsField("PostIDs", QVariant.String),
+                                        QgsField("rectan_IDs", QVariant.String),
+                                        QgsField("count_rectangles",QVariant.Int),
+                                        QgsField("mean_max_diff_sides", QVariant.Double),
+                                        QgsField("mean_diff_diagonals", QVariant.Double)])
+                    results_layer.updateFields()
+                    #get the pointlist of the rectangle for the geom and collect data
+                    for building in buildings:
+                        PIDs = []
+                        rectan_IDs = []
+                        diff_side_rectangles = []
+                        diff_diagonals = []
+                        rectangles_geom = []
+                        for room in building:
+                            listPoints = []
+                            for p in found_rects[room].corners:
+                                listPoints.append(QgsPointXY(x_values[p], y_values[p]))
+                                PIDs.append (postslist[p][0])
+                            diff_side_rectangles.append(found_rects[room].diff_sides_max)
+                            diff_diagonals.append(found_rects[room].diff_diagonals)
+                            rectan_IDs.append(room)
+                            rectangles_geom.append(QgsGeometry.fromPolygonXY ([listPoints]))
+                        building_geom = rectangles_geom[0]
+                        for rectan in rectangles_geom:
+                            building_geom = building_geom.combine(rectan)
+                        # aggregate the attributes of the building
+                        PIDs = unicode(set(PIDs))[1:-1]
+                        rectan_IDs = unicode(rectan_IDs)[1:-1]
+                        count_rectangles = len(building)
+                        mean_max_diff_sides = sum(diff_side_rectangles)/len(diff_side_rectangles)
+                        mean_diff_diagonals = sum(diff_diagonals)/len(diff_diagonals)
+                        # create building feature 
+                        fet = QgsFeature()
+                        fet.setGeometry(building_geom)
+                        fet.setAttributes([PIDs, rectan_IDs, count_rectangles, mean_max_diff_sides, mean_diff_diagonals])
+                        pr.addFeatures([fet])
 
 class Rectangle:
     def __init__(self, id, corners, diff_sides_max, diff_diagonals):
