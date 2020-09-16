@@ -26,5 +26,5 @@
 
 # noinspection PyPep8Naming
 def classFactory(iface):
-    from .src.gui.postaar import postAAR
+    from .src.script.gui.postaar import postAAR
     return postAAR(iface)

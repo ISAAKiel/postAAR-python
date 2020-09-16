@@ -1,12 +1,21 @@
+import json
+
 class Building:
-    def __init__(self, rect):
+    def __init__(self, rect=None):
         self.rooms = set()
-        self.rooms.add(rect)
-        self.ident = str([rect])
+        if rect is not None:
+            self.rooms.add(rect)
+            self.ident = str([rect])
 
     def addRoom(self, rect):
         self.rooms.add(rect)
         self.ident = str(sorted(self.rooms))
+
+    def setId(self, id):
+        self.id = id
+
+    def toJson(self):
+        return ('{ "id": ' + str(self.id) + ', "rooms": [' + (", ".join(str(rectangle.id) for rectangle in self.rooms))  + '] }')
 
     def hasRoom(self, rect):
         return rect in self.rooms

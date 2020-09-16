@@ -1,4 +1,5 @@
 from shapely.geometry import Polygon
+import json
 
 class Rect:
     def __init__(self, corners, posts, diff_sides_max, diff_diagonals):
@@ -18,6 +19,9 @@ class Rect:
 
     def isRectangle(self, minimum_difference):
         return (self.polygon.area / self.polygon.minimum_rotated_rectangle.area) > (1-minimum_difference)
+
+    def toJson(self):
+        return ('{ "id": ' + str(self.id) + ', "corners": ' + json.dumps(self.corners) + ', "diff_sides_max": ' + str(self.diff_sides_max) + ', "diff_diagonals": ' + str(self.diff_diagonals) + ' }')
 
     def __eq__(self, other):
         return isinstance(other, Rect) and self.ident == other.ident

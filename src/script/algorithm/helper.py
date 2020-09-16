@@ -1,4 +1,6 @@
 import math
+import time
+from json import JSONEncoder
 
 #double result = atan2(P3.y - P1.y, P3.x - P1.x) -
 #                atan2(P2.y - P1.y, P2.x - P1.x);
@@ -76,3 +78,26 @@ def ccw(A, B, C, posts):
 
 def intersect(A, B, C, D, posts):
     return ccw(A,C,D, posts) != ccw(B,C,D, posts) and ccw(A,B,C, posts) != ccw(A,B,D, posts)
+
+class ProgressReport:
+    def __init__(self, step=0.25, break_on_end=True):
+        self.step = step
+        self.break_on_end = break_on_end
+        self.started = False
+
+        self.restartTimer()
+
+    def restartTimer(self):
+        self.start_time = time.time()
+        self.last_progress_report = time.time()
+        self.started = True
+
+    def printProgress( self, text, percent ):
+        if not self.started:
+            self.startTimer()
+
+        if (time.time() - self.last_progress_report) >= self.step:
+            self.last_progress_report = time.time()
+            print('\r{} {:3d}% - ({:3.3f}s)'.format(text, int(percent*100), (time.time() - self.start_time)), end='', flush=True)
+        if self.break_on_end and percent >= 1:
+            print('\r{} {:3d}% - ({:3.3f}s)'.format(text, int(percent*100), (time.time() - self.start_time)), end='\n', flush=True)

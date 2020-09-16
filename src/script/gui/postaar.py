@@ -139,5 +139,6 @@ class postAAR:
                 self.dlg.gBCalcBuildings.isChecked(),
 
                 self.dlg.gBUseMulticore.isChecked(),
+                self.dlg.lEPythonDistribution.text(),
                 int(self.dlg.cores.value()))
             task.start()

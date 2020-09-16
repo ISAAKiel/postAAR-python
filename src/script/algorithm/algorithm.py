@@ -48,7 +48,7 @@ def calcRectsInWindow (window, posts, maximal_length_of_side, minimal_length_of_
 
 
 def find_rects(windows, posts, maximal_length_of_side, minimal_length_of_side, maximal_bounding_area_difference, number_of_computercores=4):
-    start = time.time()
+    progress = ProgressReport()
     resetDistances()
 
     calculated_rects = []
@@ -64,7 +64,7 @@ def find_rects(windows, posts, maximal_length_of_side, minimal_length_of_side, m
             calculated_rects.append(result.get())
 
             current_calculated_windows += 1
-            print('\rCalculating rectswwwww {:3d}% - ({:3.3f}s)'.format(int(current_calculated_windows/len(windows)*100), (time.time()-start)), end='', flush=True)
+            progress.printProgress('Calculating rects', current_calculated_windows/len(windows))
     
         found_rects = []
         for rects_in_window in calculated_rects:
@@ -74,17 +74,25 @@ def find_rects(windows, posts, maximal_length_of_side, minimal_length_of_side, m
         current_calculated_windows = 0
         for w in windows:
             calculated_rects.append(calcRectsInWindow(w, posts, maximal_length_of_side, minimal_length_of_side, maximal_bounding_area_difference ))
+
             current_calculated_windows += 1
-            print('\rCalculating rects {:3d}% - ({:3.3f}s)'.format(int(current_calculated_windows/len(windows)*100), (time.time()-start)), end='', flush=True)
+            progress.printProgress('Calculating rects', current_calculated_windows/len(windows))
     
         found_rects = []
         for rects_in_window in calculated_rects:
             found_rects += rects_in_window
 
-    return list(set(found_rects))
+    rectangles = list(set(found_rects))
+
+    id = 0
+    for rect in rectangles:
+        rect.setId(id)
+        id += 1
+
+    return rectangles
 
 def findBuildings(found_rects, posts, number_of_computercores=4):
-    start = time.time()
+    progress = ProgressReport()
 
     if number_of_computercores > 1:
         pool = Pool(processes=number_of_computercores)
@@ -112,7 +120,7 @@ def findBuildings(found_rects, posts, number_of_computercores=4):
                     buildings.add(building)
 
             current_checked_rects += 1
-            print('\rFinding buildings {:3d}% - ({:3.3f}s)'.format(int(current_checked_rects/len(results)*100), (time.time()-start)), end='', flush=True)
+            progress.printProgress('Finding buildings', current_checked_rects/len(results))
     else:
         building_list = []
         for rect in found_rects:
@@ -125,7 +133,13 @@ def findBuildings(found_rects, posts, number_of_computercores=4):
                 buildings.add(building)
 
             current_checked_rects += 1
-            print('\rFinding buildings {:3d}% - ({:3.3f}s)'.format(int(current_checked_rects/len(building_list)*100), (time.time()-start)), end='', flush=True)
+            progress.printProgress('Finding buildings', current_checked_rects/len(building_list))
+
+    id = 0
+    for building in buildings:
+        building.setId(id)
+        id += 1
+
     return buildings
 
 def constructBuilding(building_list, found_rects, posts):
