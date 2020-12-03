@@ -171,7 +171,7 @@ color: rgb(255, 0, 0);</string>
           <property name="minimumContentsLength">
            <number>1</number>
           </property>
-          <property name="showCrs">
+          <property name="showCrs" stdset="0">
            <bool>true</bool>
           </property>
           <property name="Filters" stdset="0">
@@ -223,7 +223,7 @@ color: rgb(255, 0, 0);</string>
       </sizepolicy>
      </property>
      <property name="currentIndex">
-      <number>0</number>
+      <number>1</number>
      </property>
      <widget class="QWidget" name="tab_rectangle">
       <attribute name="title">
@@ -248,7 +248,7 @@ color: rgb(255, 0, 0);</string>
           <string/>
          </property>
          <property name="pixmap">
-          <pixmap>:/plugins/postAAR/img/rect_sides.png</pixmap>
+          <pixmap>:/plugins/postAAR/img/rect_min_bounding.png</pixmap>
          </property>
          <property name="scaledContents">
           <bool>true</bool>
