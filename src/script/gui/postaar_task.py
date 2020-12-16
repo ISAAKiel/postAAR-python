@@ -1,10 +1,10 @@
 from qgis.core import (Qgis, QgsApplication, QgsMessageLog, QgsTask, QgsField, QgsPointXY, QgsFeature, QgsGeometry)
 from PyQt5.QtCore import (QVariant)
 
-from src.script.algorithm import helper as hlp
-from src.script.algorithm import algorithm as alg
-from src.script.algorithm.rect import Rect
-from src.script.algorithm.building import Building
+from postAAR.src.script.algorithm import helper as hlp
+from postAAR.src.script.algorithm import algorithm as alg
+from postAAR.src.script.algorithm.rect import Rect
+from postAAR.src.script.algorithm.building import Building
 
 import os
 import tempfile
@@ -16,7 +16,7 @@ class postAARTask(QgsTask):
     def __init__(self, iface, postlayer, postid, maximum_length_of_side, minimum_length_of_side, max_area_diff, buildings, multicore, python_executable, number_of_cores):
         self.name = 'postAAR ' + postlayer.name() + ' (' + ("_".join(str(i) for i in [maximum_length_of_side, minimum_length_of_side, max_area_diff])) + ')'
         super().__init__(self.name, QgsTask.AllFlags)
-
+        
         self.iface = iface
 
         self.postlayer = postlayer
