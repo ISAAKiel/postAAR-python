@@ -5,7 +5,7 @@ After installing the ZIP please rename the folder of the plugin to postAAR.
 
 e.g. c:\Users\\\<user>\AppData\Roaming\QGIS\QGIS3\profiles\default\python\plugins\postAAR
 
-For MacOS: /<user>/Library/Application\ Support/QGIS/QGIS3/profiles/default/python/plugins 
+For MacOS: /user/Library/Application\ Support/QGIS/QGIS3/profiles/default/python/plugins 
 
 ## Current algorithm for finding rectangles
 
