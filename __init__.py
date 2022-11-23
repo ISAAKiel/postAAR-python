@@ -25,12 +25,6 @@
 
 
 # noinspection PyPep8Naming
-def classFactory(iface):  # pylint: disable=invalid-name
-    """Load postAAR class from file postAAR.
-
-    :param iface: A QGIS interface instance.
-    :type iface: QgsInterface
-    """
-    #
-    from .postaar import postAAR
+def classFactory(iface):
+    from .src.script.gui.postaar import postAAR
     return postAAR(iface)
