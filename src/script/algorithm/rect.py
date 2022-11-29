@@ -36,4 +36,4 @@ class Rect:
         return self.ident < other.ident
 
     def __repr__(self):
-        return '' + str(self.corners) + ', ' + str(self.ident)
+        return '[' + str(self.corners) + ', ' + str(self.ident) + ']'
