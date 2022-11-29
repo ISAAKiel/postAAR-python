@@ -23,6 +23,7 @@
 """
 
 import os
+import sys
 
 from PyQt5 import QtCore, uic, QtWidgets
 from PyQt5.QtWidgets import QMessageBox, QApplication, QFileDialog
