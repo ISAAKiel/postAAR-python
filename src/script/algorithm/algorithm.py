@@ -47,7 +47,7 @@ def calcRectsInWindow (window, posts, maximal_length_of_side, minimal_length_of_
     return rects
 
 
-def find_rects(windows, posts, maximal_length_of_side, minimal_length_of_side, maximal_bounding_area_difference, number_of_computercores=4):
+def find_rects(windows, posts, maximal_length_of_side, minimal_length_of_side, maximal_bounding_area_difference, number_of_computercores=4, debug=True):
     progress = ProgressReport()
     resetDistances()
 
@@ -63,8 +63,9 @@ def find_rects(windows, posts, maximal_length_of_side, minimal_length_of_side, m
         for result in results:
             calculated_rects.append(result.get())
 
-            current_calculated_windows += 1
-            progress.printProgress('Calculating rects', current_calculated_windows/len(windows))
+            if debug:
+                current_calculated_windows += 1
+                progress.printProgress('Calculating rects', current_calculated_windows/len(windows))
     
         found_rects = []
         for rects_in_window in calculated_rects:
@@ -75,8 +76,9 @@ def find_rects(windows, posts, maximal_length_of_side, minimal_length_of_side, m
         for w in windows:
             calculated_rects.append(calcRectsInWindow(w, posts, maximal_length_of_side, minimal_length_of_side, maximal_bounding_area_difference ))
 
-            current_calculated_windows += 1
-            progress.printProgress('Calculating rects', current_calculated_windows/len(windows))
+            if debug:
+                current_calculated_windows += 1
+                progress.printProgress('Calculating rects', current_calculated_windows/len(windows))
     
         found_rects = []
         for rects_in_window in calculated_rects:
