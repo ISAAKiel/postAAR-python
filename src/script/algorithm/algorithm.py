@@ -40,7 +40,7 @@ def calcRectsInWindow (window, posts, maximal_length_of_side, minimal_length_of_
                                 ):
 
 
-                                possible_rect = Rect([a, b, potential_c, d, a], posts, 0, 0)
+                                possible_rect = Rect([a, b, potential_c, d], posts, 0, 0)
                         
                                 if possible_rect.isRectangle(maximal_bounding_area_difference):
                                     rects.add(possible_rect)
