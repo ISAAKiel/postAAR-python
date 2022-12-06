@@ -17,8 +17,8 @@ class Rect:
     def setId(self, id):
         self.id = id
 
-    def isRectangle(self, minimum_difference):
-        return (self.polygon.area / self.polygon.minimum_rotated_rectangle.area) > (1-minimum_difference)
+    def isRectangle(self, maximum_difference):
+        return (self.polygon.area / self.polygon.minimum_rotated_rectangle.area) > (1-maximum_difference)
 
     def toJson(self):
         return ('{ "id": ' + str(self.id) + ', "corners": ' + json.dumps(self.corners) + ', "diff_sides_max": ' + str(self.diff_sides_max) + ', "diff_diagonals": ' + str(self.diff_diagonals) + ' }')
