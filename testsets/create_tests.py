@@ -83,7 +83,7 @@ def write_to_file(name, polygon_list):
                     f'{x[i]:.4f}' + "," +
                     f'{y[i]:.4f}' + "," +
                     str(rid) + "," +
-                    f'{int((rect.area / rect.minimum_rotated_rectangle.area)*10000)/10000:.4f}' + "," +
+                    f'{int((1-(rect.area / rect.minimum_rotated_rectangle.area))*10000)/10000:.4f}' + "," +
                     f'{shortest:.4f}' + "," +
                     f'{longest:.4f}', file=f)
                 pid += 1
