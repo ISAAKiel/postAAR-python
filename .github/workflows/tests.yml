@@ -13,6 +13,19 @@ jobs:
         uses: actions/setup-python@v4
         with:
           python-version: 3.9
-      - uses: dariocurr/pytest-summary@main
+      - name: Install dependencies
+        run: |
+          python -m pip install -r requirements.txt
+      - name: Test with behave
+        run: |
+          behave --junit --junit-directory "tests/reports" tests
+      - name: Publish Test Report
+        uses: mikepenz/action-junit-report@v3
+        if: always()
         with:
-          extensions: pytest-cov
+          report_paths: '**/tests/reports/TEST-*.xml'
+      - uses: dorny/test-reporter@v1
+        with:
+          name: Behave Tests
+          path: 'tests/reports/*.xml'
+          reporter: java-junit 
