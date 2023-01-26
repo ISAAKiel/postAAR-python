@@ -6,31 +6,29 @@ from .helper import *
 from .rect import Rect
 
 
-def calcRectsInWindow (window, posts, maximal_length_of_side, minimal_length_of_side, maximal_bounding_area_difference):
+def calcRectsInWindow (window, posts, maximal_length_of_side, minimal_length_of_side, maximal_bounding_area_difference, distances):
     rects = set()
 
-    calcDistanceInWindow(window, posts, maximal_length_of_side, minimal_length_of_side)
-    
     for a in window:
         for b in window:
             if a == b:
                 break
 
-            dist_side_ab = getDistanceAB(a, b)
+            dist_side_ab = distances[a][b]
 
             if minimal_length_of_side <= dist_side_ab <= maximal_length_of_side:
                 for d in window:
                     if d == b or d == a:
                         break
 
-                    dist_side_ad = getDistanceAB(a, d)
+                    dist_side_ad = distances[a][d]
                     
                     if minimal_length_of_side <= dist_side_ad <= maximal_length_of_side:
                         
                         for potential_c in window:
                             
-                            dist_side_bc = getDistanceAB(b, potential_c)
-                            dist_side_dc = getDistanceAB(d, potential_c)
+                            dist_side_bc = distances[b][potential_c]
+                            dist_side_dc = distances[d][potential_c]
                                 
                             if (
                                 minimal_length_of_side <= dist_side_bc <= maximal_length_of_side and 
@@ -49,7 +47,14 @@ def calcRectsInWindow (window, posts, maximal_length_of_side, minimal_length_of_
 
 def find_rects(windows, posts, maximal_length_of_side, minimal_length_of_side, maximal_bounding_area_difference, number_of_computercores=4, debug=True):
     progress = ProgressReport()
-    resetDistances()
+
+    # TODO: all as para
+    posts_copy = posts
+    posts = {}
+    for post in posts_copy:
+        posts[post[0]] = post[1:3]
+
+    distances = calcDistance(posts, maximal_length_of_side, minimal_length_of_side)
 
     calculated_rects = []
     if number_of_computercores > 1:
@@ -57,7 +62,7 @@ def find_rects(windows, posts, maximal_length_of_side, minimal_length_of_side, m
 
         results = []
         for w in windows:
-            results.append(pool.apply_async(calcRectsInWindow, (w, posts, maximal_length_of_side, minimal_length_of_side, maximal_bounding_area_difference, )))
+            results.append(pool.apply_async(calcRectsInWindow, (w, posts, maximal_length_of_side, minimal_length_of_side, maximal_bounding_area_difference, distances, )))
 
         current_calculated_windows = 0
         for result in results:
@@ -74,7 +79,7 @@ def find_rects(windows, posts, maximal_length_of_side, minimal_length_of_side, m
         results = []
         current_calculated_windows = 0
         for w in windows:
-            calculated_rects.append(calcRectsInWindow(w, posts, maximal_length_of_side, minimal_length_of_side, maximal_bounding_area_difference ))
+            calculated_rects.append(calcRectsInWindow(w, posts, maximal_length_of_side, minimal_length_of_side, maximal_bounding_area_difference, distances ))
 
             if debug:
                 current_calculated_windows += 1
@@ -93,7 +98,7 @@ def find_rects(windows, posts, maximal_length_of_side, minimal_length_of_side, m
 
     return rectangles
 
-def findBuildings(found_rects, posts, number_of_computercores=4):
+def findBuildings(found_rects, posts=None, number_of_computercores=4):
     progress = ProgressReport()
 
     if number_of_computercores > 1:
@@ -112,7 +117,7 @@ def findBuildings(found_rects, posts, number_of_computercores=4):
         
         results = []
         for building_list in building_lists:    
-            results.append(pool.apply_async(constructBuilding, (building_list, found_rects, posts, )))
+            results.append(pool.apply_async(construct_building, (building_list, found_rects,)))
 
         buildings = set()
         current_checked_rects = 0
@@ -127,10 +132,10 @@ def findBuildings(found_rects, posts, number_of_computercores=4):
         building_list = []
         for rect in found_rects:
             building_list.append(Building(rect))
-        
+
         buildings = set()
         current_checked_rects = 0
-        for building in constructBuilding(building_list, found_rects, posts ):
+        for building in construct_building(building_list, found_rects):
             if len(building.rooms) > 1:
                 buildings.add(building)
 
@@ -144,52 +149,40 @@ def findBuildings(found_rects, posts, number_of_computercores=4):
 
     return buildings
 
-def constructBuilding(building_list, found_rects, posts):
-    for building in building_list:
-        for rect_to_add in found_rects:
-            if building.hasRoom(rect_to_add):
-                continue
-            if isPartOfBuilding(rect_to_add, building, posts):
-                building.addRoom(rect_to_add)
-        
-    return building_list
+
+def construct_building(buildings, found_rects):
+    b = 0
+    while b < len(buildings):
+        building = buildings[b]
+        i = 0
+        while i < len(found_rects):
+            if not building.hasRoom(found_rects[i]) and building.is_connected_to(found_rects[i]) and building.touches(found_rects[i]):
+                new_building = building.copy()
+                new_building.addRoom(found_rects[i])
+                buildings.append(new_building)
+            i += 1
+        b += 1
+
+    print(buildings)
+    real_buildings = set()
+    for building in buildings:
+        if len(building.rooms) > 1 and not is_contained_in_other(building, buildings):
+            real_buildings.add(building)
+    print(real_buildings)
+    return list(real_buildings)
 
 
-def isPartOfBuilding(rect, building, posts, strict=True):
+def is_contained_in_other(building, buildings):
+    for b in buildings:
+        if is_part_of_building(building, b):
+            return True
+    return False
 
-    connected = False
 
-    for part in building.rooms:
-        point_of_part_in_rect = []
-        for point in part.corners:
-            if point in rect.corners:
-                point_of_part_in_rect.append(point)
-        if len(point_of_part_in_rect) == 2:
-            if (
-                math.fabs(part.corners.index(point_of_part_in_rect[0]) - part.corners.index(point_of_part_in_rect[1])) == 1 and
-                math.fabs(rect.corners.index(point_of_part_in_rect[0]) - rect.corners.index(point_of_part_in_rect[1])) == 1
-            ):
-                connected = True
-                break
-            
-    if connected:
-        overlaps = 0
-        contains = 0
-
-        for part in building.rooms:
-            try:
-                if part.polygon.overlaps(rect.polygon) or rect.polygon.overlaps(part.polygon):
-                    overlaps += 1
-                    if strict:
-                        return False
-                if part.polygon.contains(rect.polygon) or rect.polygon.contains(part.polygon):
-                    return False
-            except:
-                print(building, rect)
+def is_part_of_building(b1, b2, strict=True):
+    if len(b2.rooms) > len(b1.rooms):
+        for r in b1.room_ids:
+            if r not in b2.room_ids:
                 return False
-        
-        if strict and overlaps == 0 and contains == 0:        
-            return True
-        if not strict and overlaps == 0:
-            return True
+        return True
     return False

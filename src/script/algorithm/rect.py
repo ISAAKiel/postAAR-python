@@ -1,18 +1,22 @@
 from shapely.geometry import Polygon
 import json
 
+
 class Rect:
     def __init__(self, corners, posts, diff_sides_max, diff_diagonals):
-        self.corners = corners.copy()
-        corners.sort()
-        self.ident = str(corners)
+        self.id = None
+        self.corners = [c for c in corners]
 
         rect_points = []
-        for point in self.corners:
-            rect_points.append((posts[point][1], posts[point][2]))
+        for point in corners:
+            rect_points.append((posts[point][0], posts[point][1]))
         self.polygon = Polygon(rect_points)
         self.diff_sides_max = diff_sides_max
         self.diff_diagonals = diff_diagonals
+
+        corners = [c for c in corners]
+        corners.sort()
+        self.ident = str(corners)
 
     def setId(self, id):
         self.id = id
@@ -36,4 +40,4 @@ class Rect:
         return self.ident < other.ident
 
     def __repr__(self):
-        return '' + str(self.corners) + ', ' + str(self.ident)
+        return '[' + str(self.corners) + ', ' + str(self.ident) + ']'
