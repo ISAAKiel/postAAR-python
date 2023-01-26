@@ -13,29 +13,35 @@ def distance_points(a, b):
 
 
 from scipy.spatial import distance
-def calcDistance(posts, max_distance, min_distance):
-    k = [k for k in posts.keys()]
-    p = [(posts[k[i]][0], posts[k[i]][1]) for i in range(len(k))] # positional mapping :(
-    d = distance.cdist(p, p, 'euclidean')
-
+def calcDistance(windows, posts, max_distance, min_distance):
     all_distances = dict()
 
-    for i in range(len(posts)):
-        all_distances[k[i]] = dict()
-        for j in range(len(posts)):
-            if min_distance <= d[i][j] <= max_distance:
-                all_distances[k[i]][k[j]] = d[i][j]
-            else:
-                all_distances[k[i]][k[j]] = max_distance * 2
+    for w in windows:
+        p = [(posts[w[i]][0], posts[w[i]][1]) for i in range(len(w))]
+        d = distance.cdist(p, p, 'euclidean')
+
+        for i in range(len(w)):
+            if w[i] not in all_distances:
+                all_distances[w[i]] = dict()
+            for j in range(len(w)):
+                if min_distance <= d[i][j] <= max_distance:
+                    all_distances[w[i]][w[j]] = d[i][j]
+                else:
+                    all_distances[w[i]][w[j]] = max_distance * 2
+
+    calcs = 0
+    for distances in all_distances.values():
+        calcs += len(distances)
+    print(calcs)
 
     return all_distances
 
 
 def buildWindows(posts, maximal_length_of_side):
-    min_value_x = min([post[1] for post in posts]) - 1
-    min_value_y = min([post[2] for post in posts]) - 1
-    max_value_x = max([post[1] for post in posts]) + 1
-    max_value_y = max([post[2] for post in posts]) + 1
+    min_value_x = min([post[0] for post in posts.values()]) - 1
+    min_value_y = min([post[1] for post in posts.values()]) - 1
+    max_value_x = max([post[0] for post in posts.values()]) + 1
+    max_value_y = max([post[1] for post in posts.values()]) + 1
 
     window_x = min_value_x
     window_y = min_value_y
@@ -51,13 +57,15 @@ def buildWindows(posts, maximal_length_of_side):
         while window_x < max_value_x:
 
             points_in_window = []
-            for post in posts:
-                if window_x < post[1] < (window_x + window_size) and window_y < post[2] < (window_y + window_size):
-                    points_in_window.append(post[0])
-            windows.append(points_in_window)
+            for post in posts.keys():
+                if window_x < posts[post][0] < (window_x + window_size) and window_y < posts[post][1] < (window_y + window_size):
+                    points_in_window.append(post)
+            if len(points_in_window) > 0:
+                windows.append(points_in_window)
 
             window_x += window_size / 2
         window_y += window_size / 2
+
     return windows
 
 

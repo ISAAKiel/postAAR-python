@@ -45,36 +45,47 @@ def calcRectsInWindow (window, posts, maximal_length_of_side, minimal_length_of_
     return rects
 
 
+def look_at_windows(windows, posts, maximal_length_of_side, minimal_length_of_side, maximal_bounding_area_difference, distances):
+    calculated_rects = []
+    for window in windows:
+        calculated_rects.append(calcRectsInWindow(window, posts, maximal_length_of_side, minimal_length_of_side, maximal_bounding_area_difference, distances))
+
+    found_rects = []
+    for rects_in_window in calculated_rects:
+        found_rects += rects_in_window
+
+    return found_rects
+
 def find_rects(windows, posts, maximal_length_of_side, minimal_length_of_side, maximal_bounding_area_difference, number_of_computercores=4, debug=True):
     progress = ProgressReport()
 
-    # TODO: all as para
-    posts_copy = posts
-    posts = {}
-    for post in posts_copy:
-        posts[post[0]] = post[1:3]
-
-    distances = calcDistance(posts, maximal_length_of_side, minimal_length_of_side)
+    distances = calcDistance(windows, posts, maximal_length_of_side, minimal_length_of_side)
 
     calculated_rects = []
     if number_of_computercores > 1:
-        pool = Pool(processes=number_of_computercores)
+        with Pool(processes=number_of_computercores) as pool:
 
-        results = []
-        for w in windows:
-            results.append(pool.apply_async(calcRectsInWindow, (w, posts, maximal_length_of_side, minimal_length_of_side, maximal_bounding_area_difference, distances, )))
+            window_pool = dict()
+            for i in range(number_of_computercores):
+                window_pool[i] = []
+            for i in range(len(windows)):
+                window_pool[i % number_of_computercores].append(windows[i])
 
-        current_calculated_windows = 0
-        for result in results:
-            calculated_rects.append(result.get())
+            results = []
+            for w in window_pool.values():
+                results.append(pool.apply_async(look_at_windows, (w, posts, maximal_length_of_side, minimal_length_of_side, maximal_bounding_area_difference, distances, )))
 
-            if debug:
-                current_calculated_windows += 1
-                progress.printProgress('Calculating rects', current_calculated_windows/len(windows))
-    
-        found_rects = []
-        for rects_in_window in calculated_rects:
-            found_rects += rects_in_window
+            current_calculated_windows = 0
+            for result in results:
+                calculated_rects.append(result.get())
+
+                if debug:
+                    current_calculated_windows += 1
+                    progress.printProgress('Calculating rects', current_calculated_windows/len(windows))
+
+            found_rects = []
+            for rects_in_window in calculated_rects:
+                found_rects += rects_in_window
     else:
         results = []
         current_calculated_windows = 0
@@ -99,14 +110,13 @@ def find_rects(windows, posts, maximal_length_of_side, minimal_length_of_side, m
     return rectangles
 
 def findBuildings(found_rects, posts=None, number_of_computercores=4):
-    progress = ProgressReport()
 
     if number_of_computercores > 1:
         pool = Pool(processes=number_of_computercores)
 
         building_lists = []
         building_list = []
-        divider = int(len(found_rects)/100) + 1
+        divider = int(len(found_rects)/number_of_computercores) + 1
         i = 0
         for rect in found_rects:
             building_list.append(Building(rect))
@@ -120,27 +130,21 @@ def findBuildings(found_rects, posts=None, number_of_computercores=4):
             results.append(pool.apply_async(construct_building, (building_list, found_rects,)))
 
         buildings = set()
-        current_checked_rects = 0
         for result in results:
             for building in result.get():
                 if len(building.rooms) > 1:
                     buildings.add(building)
 
-            current_checked_rects += 1
-            progress.printProgress('Finding buildings', current_checked_rects/len(results))
     else:
         building_list = []
         for rect in found_rects:
             building_list.append(Building(rect))
 
         buildings = set()
-        current_checked_rects = 0
         for building in construct_building(building_list, found_rects):
             if len(building.rooms) > 1:
                 buildings.add(building)
 
-            current_checked_rects += 1
-            progress.printProgress('Finding buildings', current_checked_rects/len(building_list))
 
     id = 0
     for building in buildings:
@@ -151,6 +155,8 @@ def findBuildings(found_rects, posts=None, number_of_computercores=4):
 
 
 def construct_building(buildings, found_rects):
+    buildings = buildings
+    progress = ProgressReport(step=0.1)
     b = 0
     while b < len(buildings):
         building = buildings[b]
@@ -159,16 +165,19 @@ def construct_building(buildings, found_rects):
             if not building.hasRoom(found_rects[i]) and building.is_connected_to(found_rects[i]) and building.touches(found_rects[i]):
                 new_building = building.copy()
                 new_building.addRoom(found_rects[i])
-                buildings.append(new_building)
+                if new_building not in buildings:
+                    buildings.append(new_building)
+                    buildings = list(set(buildings))
             i += 1
         b += 1
 
-    print(buildings)
+        progress.printProgress('Finding possible buildings ' + str(b) + "/" + str(len(buildings)), b / len(buildings))
+
     real_buildings = set()
     for building in buildings:
         if len(building.rooms) > 1 and not is_contained_in_other(building, buildings):
             real_buildings.add(building)
-    print(real_buildings)
+
     return list(real_buildings)
 
 

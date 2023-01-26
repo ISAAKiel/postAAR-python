@@ -1,6 +1,6 @@
 import json
 
-from shapely import Polygon, MultiPolygon
+from shapely.geometry import Polygon, MultiPolygon
 
 
 class Building:

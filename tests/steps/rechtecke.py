@@ -10,14 +10,14 @@ use_step_matcher("parse")
 
 @step('die Punkte aus dem Test- und Kontrollset "{filename}" aus dem Ordner "{folder}" wurden geladen')
 def step_impl(context, filename, folder):
-    points = []
+    points = {}
     control = {}
 
     with open("./tests/test_data/" + folder + "/" + filename, 'r') as datafile:
         for line in datafile:
             data = line.split(",")
             try:
-                points.append([int(data[0]), float(data[1]), float(data[2])])
+                points[int(data[0])] = [float(data[1]), float(data[2])]
 
                 part_of_rectangle = data[3].strip()
                 if part_of_rectangle not in control:
@@ -40,7 +40,7 @@ def step_impl(context, filename, folder):
 
 @step('die Punkte und erwarteten Rechtecke aus dem Testordner "{folder}" wurden geladen')
 def step_impl(context, folder):
-    points = []
+    points = {}
 
     with open("./tests/test_data/" + folder + "/points.csv", 'r') as datafile:
         for line in datafile:
@@ -49,7 +49,7 @@ def step_impl(context, folder):
 
             data = line.split(",")
             try:
-                points.append([int(data[0]), float(data[1]), float(data[2])])
+                points[int(data[0])] = [float(data[1]), float(data[2])]
             except ValueError as i:
                 pass
 

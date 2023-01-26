@@ -53,7 +53,6 @@ def step_impl(context):
         raise ValueError(u'Es müssen Rechtecke vorhanden sein')
 
     context.found_buildings = findBuildings(context.rectangles, number_of_computercores=1)
-    print(context.found_buildings)
 
 
 @step("werden alle möglichen Gebäude gefunden")

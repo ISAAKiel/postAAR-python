@@ -35,12 +35,12 @@ class postAARTask(QgsTask):
         self.found_rects = []
 
         QgsMessageLog.logMessage('Preparing data', self.name, Qgis.Info)
-        self.postslist = []
+        self.list_of_posts = dict()
         for f in postlayer.getFeatures():
             pid = f[postid]
             x = f.geometry().asPoint().x()
             y = f.geometry().asPoint().y()
-            self.postslist.append([pid, x, y])
+            self.list_of_posts[int(pid)] = [x, y]
 
     def run(self):
         QgsMessageLog.logMessage('Started', self.name, Qgis.Info)
@@ -56,8 +56,8 @@ class postAARTask(QgsTask):
             outputfile = tempfile.NamedTemporaryFile(mode='w+t', prefix='postAAR', delete=False)
 
             with open(transferfile.name, 'w') as file:
-                for post in self.postslist:
-                    file.write(' '.join(str(i) for i in post) + '\n')
+                for post in self.list_of_posts.keys():
+                    file.write(str(post) + ' ' + str(self.list_of_posts[post][0]) + ' ' + str(self.list_of_posts[post][1]) + '\n')
 
             subprocess.call(
                 [
@@ -77,7 +77,7 @@ class postAARTask(QgsTask):
                 results = json.load(file)
                 print(results)
                 for rectangle_dict in results['rectangles']:
-                    rectangle = Rect(rectangle_dict['corners'], self.postslist, rectangle_dict['diff_sides_max'], rectangle_dict['diff_diagonals'])
+                    rectangle = Rect(rectangle_dict['corners'], self.list_of_posts, rectangle_dict['diff_sides_max'], rectangle_dict['diff_diagonals'])
                     rectangle.setId(rectangle_dict['id'])
                     self.found_rects.append(rectangle)
                 QgsMessageLog.logMessage('Found ' + str(len(self.found_rects)) + ' rectangles', self.name, Qgis.Info)
@@ -105,17 +105,18 @@ class postAARTask(QgsTask):
     def runSinglecore(self):
         try:
             QgsMessageLog.logMessage('Building windows', self.name, Qgis.Info)
-            windows = hlp.buildWindows(self.postslist, self.maximum_length_of_side)
+            windows = hlp.buildWindows(self.list_of_posts, self.maximum_length_of_side)
             self.setProgress(30)
 
             QgsMessageLog.logMessage('Finding rectangles', self.name, Qgis.Info)
-            self.found_rects = alg.find_rects(windows, self.postslist, self.maximum_length_of_side, self.minimum_length_of_side, self.max_area_diff, number_of_computercores=1)
+
+            self.found_rects = alg.find_rects(windows, self.list_of_posts, self.maximum_length_of_side, self.minimum_length_of_side, self.max_area_diff, number_of_computercores=1)
             QgsMessageLog.logMessage('Found ' + str(len(self.found_rects)) + ' rectangles', self.name, Qgis.Info)
             self.setProgress(60)
 
             if True or self.buildings:
                 QgsMessageLog.logMessage('Finding buildings', self.name, Qgis.Info)
-                self.buildings = alg.findBuildings(self.found_rects, self.postslist, number_of_computercores=1)
+                self.buildings = alg.findBuildings(self.found_rects, self.list_of_posts, number_of_computercores=1)
                 QgsMessageLog.logMessage('Found ' + str(len(self.buildings)) + ' buildings', self.name, Qgis.Info)
             self.setProgress(90)
 
@@ -142,8 +143,8 @@ class postAARTask(QgsTask):
                 for rectangle in self.found_rects:
                     # build geometry
                     feature = QgsFeature()
-                    feature.setGeometry(QgsGeometry.fromPolygonXY([[QgsPointXY(self.postslist[point][1], self.postslist[point][2]) for point in rectangle.corners]]))
-                    feature.setAttributes([str(rectangle.id), (", ".join(str(self.postslist[point][0]) for point in rectangle.corners))])
+                    feature.setGeometry(QgsGeometry.fromPolygonXY([[QgsPointXY(self.list_of_posts[point][0], self.list_of_posts[point][1]) for point in rectangle.corners]]))
+                    feature.setAttributes([str(rectangle.id), (", ".join(str(point) for point in rectangle.corners))])
                     pr.addFeatures([feature])
             else:
                 return
@@ -166,12 +167,13 @@ class postAARTask(QgsTask):
                     building_geometry = None
                     postIds = []
                     for room in building.rooms:
-                        if not building_geometry:
-                            building_geometry = QgsGeometry.fromPolygonXY([[QgsPointXY(self.postslist[point][1], self.postslist[point][2]) for point in room.corners]])
-                        else:
-                            building_geometry.combine(QgsGeometry.fromPolygonXY([[QgsPointXY(self.postslist[point][1], self.postslist[point][2]) for point in room.corners]]))
                         for post in room.corners:
                             postIds.append(post)
+
+                        if not building_geometry:
+                            building_geometry = QgsGeometry.fromPolygonXY([[QgsPointXY(self.list_of_posts[point][0], self.list_of_posts[point][1]) for point in room.corners]])
+                        else:
+                            building_geometry = building_geometry.combine(QgsGeometry.fromPolygonXY([[QgsPointXY(self.list_of_posts[point][0], self.list_of_posts[point][1]) for point in room.corners]]))
 
                     feature = QgsFeature()
                     feature.setGeometry(building_geometry)

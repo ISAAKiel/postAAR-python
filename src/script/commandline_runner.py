@@ -29,11 +29,11 @@ try:
             arguments = parseCommandline()
 
             print('Loading data')
-            posts = []
+            posts = dict()
             with open(os.path.join(tempfile.gettempdir(), arguments.file)) as f:
                 for line in f:
                     data = line.split()
-                    posts.append([float(data[0]), float(data[1]), float(data[2])])
+                    posts[int(data[0])] = [float(data[1]), float(data[2])]
 
             print('Loaded data (', (time.time()-start), 'ms)', sep='')
 
