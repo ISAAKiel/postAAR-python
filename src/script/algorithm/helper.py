@@ -29,11 +29,6 @@ def calcDistance(windows, posts, max_distance, min_distance):
                 else:
                     all_distances[w[i]][w[j]] = max_distance * 2
 
-    calcs = 0
-    for distances in all_distances.values():
-        calcs += len(distances)
-    print(calcs)
-
     return all_distances
 
 
@@ -85,6 +80,8 @@ class ProgressReport:
         self.break_on_end = break_on_end
         self.started = False
 
+        self.start_time = time.time()
+        self.last_progress_report = time.time()
         self.restartTimer()
 
     def restartTimer(self):
@@ -92,9 +89,15 @@ class ProgressReport:
         self.last_progress_report = time.time()
         self.started = True
 
-    def printProgress(self, text, percent):
+    def will_print(self, percent=0.0):
         if not self.started:
-            self.startTimer()
+            self.restartTimer()
+
+        return (time.time() - self.last_progress_report) >= self.step or self.break_on_end and percent >= 1
+
+    def printProgress(self, text, percent=0.0):
+        if not self.started:
+            self.restartTimer()
 
         if (time.time() - self.last_progress_report) >= self.step:
             self.last_progress_report = time.time()

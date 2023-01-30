@@ -6,6 +6,7 @@ class Rect:
     def __init__(self, corners, posts, diff_sides_max, diff_diagonals):
         self.id = None
         self.corners = [c for c in corners]
+        self.corner_set = {c for c in corners}
 
         rect_points = []
         for point in corners:

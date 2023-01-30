@@ -1,6 +1,7 @@
 import json
 
 from shapely.geometry import Polygon, MultiPolygon
+from shapely.ops import unary_union
 
 
 class Building:
@@ -12,21 +13,32 @@ class Building:
         self.form = Polygon()
         if rect is not None:
             self.addRoom(rect)
-        self.identity = str(self.room_ids)
+        self.identity = frozenset(self.room_ids)
+        self.hash = hash(self.identity)
 
     def copy(self):
         b = Building()
-        for r in self.rooms:
-            b.addRoom(r)
+        b.rooms = set(self.rooms)
+        b.posts = set(self.posts)
+
+        b.room_ids = self.room_ids
+        b.identity = self.identity
+        b.hash = self.hash
+        b.form = self.form
+
         return b
 
     def addRoom(self, rect):
         self.rooms.add(rect)
-        for post in rect.corners:
-            self.posts.add(post)
+        self.posts |= rect.corner_set
+
         self.room_ids = sorted([room.id for room in self.rooms])
-        self.identity = str(self.room_ids)
-        self.form = MultiPolygon([r.polygon for r in self.rooms])
+        self.identity = frozenset(self.room_ids)
+        self.hash = hash(self.identity)
+        self.form = unary_union([self.form, rect.polygon])
+
+    def is_valid(self):
+        return self.form.is_valid and isinstance(self.form, Polygon) and len(list(self.form.interiors)) == 0
 
     def setId(self, id):
         self.id = id
@@ -38,12 +50,7 @@ class Building:
         return rect.id in self.room_ids
 
     def is_connected_to(self, rect):
-        connections = 0
-        for corner in rect.corners:
-            if corner in self.posts:
-                connections += 1
-
-        return connections >= 2
+        return len(self.posts & rect.corner_set) >= 2
 
     def touches(self, rect):
         return self.form.touches(rect.polygon)
@@ -55,7 +62,7 @@ class Building:
         return not self.__eq__(other)
 
     def __hash__(self):
-        return hash(self.identity)
+        return self.hash
 
     def __repr__(self):
         return '[' + str(self.id) + '->' + str(self.room_ids) + ']'

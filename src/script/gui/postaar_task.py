@@ -156,8 +156,8 @@ class postAARTask(QgsTask):
 
                 # add basic attributes
                 pr = results_layer.dataProvider()
-                pr.addAttributes([QgsField("postIds", QVariant.String),
-                                  QgsField("rectangleIds", QVariant.String),
+                pr.addAttributes([QgsField("rectangleIds", QVariant.String),
+                                  QgsField("postIds", QVariant.String),
                                   QgsField("rectangle_count", QVariant.Int)])
                 results_layer.updateFields()
 
@@ -177,7 +177,7 @@ class postAARTask(QgsTask):
 
                     feature = QgsFeature()
                     feature.setGeometry(building_geometry)
-                    feature.setAttributes([(", ".join(str(id) for id in postIds)), (", ".join(str(room.id) for room in building.rooms)), str(len(building.rooms))])
+                    feature.setAttributes([(", ".join(str(room.id) for room in building.rooms)), (", ".join(str(id) for id in postIds)), str(len(building.rooms))])
                     pr.addFeatures([feature])
 
 

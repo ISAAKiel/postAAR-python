@@ -222,8 +222,7 @@ def get_rectangle_in_list(list_of__rectangles, rectangle):
 def same_rectangles(rectangle1, rectangle2, clockwise=True):
     shift = rectangle1.corners.index(rectangle2.corners[0])
     for i, point in enumerate(rectangle2.corners):
-        if not point == rectangle1.corners[
-            ((shift + (i if clockwise else -i)) + len(rectangle2.corners)) % len(rectangle2.corners)]:
+        if not point == rectangle1.corners[((shift + (i if clockwise else -i)) + len(rectangle2.corners)) % len(rectangle2.corners)]:
             return False
     return True
 

@@ -1,19 +1,19 @@
 # Zum Erstellen eines Punkt-, Rechteck- und Gebäudesets
 
 # Name des Sets. Wird allen Dateien vorangestellt, i.e x.points.csv, x.rectangles.csv, x.buildings.csv
-set_name = "rectangle_square_over_square_1-3"
+set_name = "building_without_hole_1-1.5"
 
 # Die Liste der Punkte.
 # Format ist [id, x, y]
-points = [[0, 0, 0], [1, 0, 1], [2, 1, 1], [3, 1, 0], [4, 1, -1], [5, 0, -1], [6, -1, -1], [7, -1, 0], [8, -1, 1], [9, 0, 2], [10, 2, 0], [11, 0, -2], [12, -2, 0]]
+points = [[0, 0, 0], [1, 1, 0], [2, 1, -1], [3, 0, -1], [4, -1, -1], [5, -1, 0], [6, -1, 1], [7, 0, 1], [8, 1, 2], [9, 2, 1]]
 
 # Die Liste der Rechtecke.
 # Ecken im oder gegen Uhrzeigersinn. Format ist [id, point-id, point-id, point-id, point-id]
-rectangles = [[0, 0, 1, 2, 3], [1, 0, 3, 4, 5], [2, 0, 5, 6, 7], [3, 0, 7, 8, 1], [4, 7, 8, 2, 3], [5, 6, 7, 3, 4], [6, 6, 8, 1, 5], [7, 5, 1, 2, 4], [8, 2, 4, 6, 8], [9, 1, 3, 5, 7], [10, 0, 4, 11, 6], [11, 0, 6, 12, 8], [12, 0, 8, 9, 2], [13, 0, 2, 10, 4], [14, 6, 12, 9, 2], [15, 11, 6, 2, 10], [16, 11, 12, 8, 4], [17, 4, 8, 9, 10], [18, 9, 10, 11, 12]]
+rectangles = [[0, 0, 1, 2, 3], [1, 0, 3, 4, 5], [2, 0, 5, 6, 7], [3, 1, 7, 8, 9], [4, 1, 3, 5, 7]]
 
 # Die Liste der Gebäude.
 # Können aus unterschiedlich vielen Rechtecken bestehen. Format ist [rectangle-id, rectangle-id, ...]
-buildings = [[0, 1, 2, 3], [0, 1, 6], [2, 3, 7], [3, 0, 5], [1, 2, 4], [4, 5], [6, 7], [10, 11, 12, 13], [10, 13, 14], [11, 12, 15], [12, 13, 16], [10, 11, 17], [14, 15], [16, 17]]
+buildings = [[0, 1, 2], [3, 4]]
 
 import os
 import math
