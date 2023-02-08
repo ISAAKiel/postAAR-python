@@ -1,7 +1,6 @@
 from shapely.geometry import Polygon
 import json
 
-
 class Rect:
     def __init__(self, corners, posts, diff_sides_max, diff_diagonals):
         self.id = None
