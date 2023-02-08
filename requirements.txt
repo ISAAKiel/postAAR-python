@@ -3,3 +3,4 @@ matplotlib
 behave
 PyHamcrest
 numpy
+scipy
