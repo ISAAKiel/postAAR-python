@@ -112,6 +112,23 @@ def step_impl(context):
                                               number_of_computercores=1, debug=False)
 
 
+@step("nach den Rechtecken mit mehreren Kernen gesucht wird")
+def step_impl(context):
+    if not hasattr(context, "points"):
+        raise ValueError(u'Es müssen Punkte vorhanden sein')
+    if not hasattr(context, "difference_to_ideal_rectangle"):
+        raise ValueError(u'Es muss eine Differenz zum idealen Rechteck gegeben sein')
+    if not hasattr(context, "minimum_length_of_side"):
+        raise ValueError(u'Es muss eine minimale Länge gegeben sein')
+    if not hasattr(context, "maximum_length_of_side"):
+        raise ValueError(u'Es muss eine maximale Länge gegeben sein')
+
+    windows = hlp.buildWindows(context.points, context.maximum_length_of_side)
+    context.found_rectangles = alg.find_rects(windows, context.points, context.maximum_length_of_side,
+                                              context.minimum_length_of_side, context.difference_to_ideal_rectangle,
+                                              number_of_computercores=2, debug=False)
+
+
 @step("werden nur die Rechtecke gefunden die zu den Parametern passen")
 def step_impl(context):
     if not hasattr(context, "found_rectangles"):
@@ -154,6 +171,28 @@ def step_impl(context):
         result.found_rectangles = alg.find_rects(windows, context.points, result.maximum_length_of_side,
                                                  result.minimum_length_of_side,
                                                  result.max_difference_to_ideal_rectangle, number_of_computercores=1,
+                                                 debug=False)
+
+        context.results.append(result)
+
+
+@step("nach den Rechtecken mit mehreren Kernen mit den Parametern in der Liste gesucht wird")
+def step_impl(context):
+    if not hasattr(context, "points"):
+        raise ValueError(u'Es müssen Punkte vorhanden sein')
+
+    context.results = []
+
+    for row in context.table:
+        result = Result()
+        result.maximum_length_of_side = float(row['Maximum'])
+        result.minimum_length_of_side = float(row['Minimum'])
+        result.max_difference_to_ideal_rectangle = float(row['Differenz']) / 100
+
+        windows = hlp.buildWindows(context.points, result.maximum_length_of_side)
+        result.found_rectangles = alg.find_rects(windows, context.points, result.maximum_length_of_side,
+                                                 result.minimum_length_of_side,
+                                                 result.max_difference_to_ideal_rectangle, number_of_computercores=2,
                                                  debug=False)
 
         context.results.append(result)
@@ -256,5 +295,4 @@ class TestRect:
     def __repr__(self):
         return str(self.corners) + "-" + str(self.difference_to_ideal_rectangle) + "-" + str(
             self.minimum_length_of_side) + "-" + str(self.maximum_length_of_side)
-
 

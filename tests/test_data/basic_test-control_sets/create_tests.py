@@ -72,23 +72,25 @@ def get_side_lengths(x_points, y_points):
 def write_to_csvfile(name, polygon_list):
     pid = 0
     rid = 0
-    for part in range(0, len(polygon_list)//250 + 1):
-        with open(name + "_" + str(part+1) + ".csv", 'w') as f:
-            print("id,x,y,shape_id,difference_to_perfect_rect,shortest_side_length,longest_side_length", file=f)
-            for rect in polygon_list[part*250:min(part*250+250, len(polygon_list))]:
-                x, y = rect.exterior.coords.xy
-                shortest, longest = get_side_lengths(x, y)
-                for i in range(4):
-                    print(
-                        str(pid) + "," +
-                        f'{x[i]:.4f}' + "," +
-                        f'{y[i]:.4f}' + "," +
-                        str(rid) + "," +
-                        f'{int((1-(rect.area / rect.minimum_rotated_rectangle.area))*100)/100:.2f}' + "," +
-                        f'{shortest:.4f}' + "," +
-                        f'{longest:.4f}', file=f)
-                    pid += 1
-                rid += 1
+    number_of_rects_in_file = 72
+    for part in range(0, len(polygon_list)//number_of_rects_in_file + 1):
+        if len(polygon_list[part*number_of_rects_in_file:min(part*number_of_rects_in_file+number_of_rects_in_file, len(polygon_list))]) > 0:
+            with open(name + "_" + str(part+1) + ".csv", 'w') as f:
+                print("id,x,y,shape_id,difference_to_perfect_rect,shortest_side_length,longest_side_length", file=f)
+                for rect in polygon_list[part*number_of_rects_in_file:min(part*number_of_rects_in_file+number_of_rects_in_file, len(polygon_list))]:
+                    x, y = rect.exterior.coords.xy
+                    shortest, longest = get_side_lengths(x, y)
+                    for i in range(4):
+                        print(
+                            str(pid) + "," +
+                            f'{x[i]:.4f}' + "," +
+                            f'{y[i]:.4f}' + "," +
+                            str(rid) + "," +
+                            f'{int((1-(rect.area / rect.minimum_rotated_rectangle.area))*100)/100:.2f}' + "," +
+                            f'{shortest:.4f}' + "," +
+                            f'{longest:.4f}', file=f)
+                        pid += 1
+                    rid += 1
 
 
 if __name__ == '__main__':

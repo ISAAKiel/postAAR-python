@@ -220,9 +220,11 @@ def construct_building(buildings, found_rects):
         if len(building.rooms) > 1 and not building.part_of_bigger:
             real_buildings_first_pass.add(building)
 
+    progress.printProgress('Found ' + str(len(real_buildings_first_pass)) + ' unique buildings. Checking for extraneous combinations', 1)
+
     real_buildings = set()
     for building in real_buildings_first_pass:
-        if not is_contained_in_other(building, buildings):
+        if not is_contained_in_other(building, real_buildings_first_pass):
             real_buildings.add(building)
 
     return list(real_buildings)

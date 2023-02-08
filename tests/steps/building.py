@@ -55,6 +55,14 @@ def step_impl(context):
     context.found_buildings = findBuildings(context.rectangles, number_of_computercores=1)
 
 
+@step("nach möglichen Gebäuden mit mehreren Kernen gesucht wird")
+def step_impl(context):
+    if not hasattr(context, "rectangles"):
+        raise ValueError(u'Es müssen Rechtecke vorhanden sein')
+
+    context.found_buildings = findBuildings(context.rectangles, number_of_computercores=2)
+
+
 @step("werden alle möglichen Gebäude gefunden")
 def step_impl(context):
     if not hasattr(context, "found_buildings"):
