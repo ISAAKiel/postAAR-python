@@ -126,7 +126,7 @@ class postAAR:
         self.dlg.show()
 
         result = self.dlg.exec_()
-        if result==1:
+        if result == 1:
             task = postAARTask(
                 self.iface,
 
@@ -136,7 +136,7 @@ class postAAR:
                 self.dlg.minimum_length_of_side.value(),
                 self.dlg.maximal_bounding_area_difference.value() / 100.0,
 
-                self.dlg.gBCalcBuildings.isChecked(),
+                self.dlg.cBConstructBuilding.isChecked(),
 
                 self.dlg.gBUseMulticore.isChecked(),
                 self.dlg.lEPythonDistribution.text(),

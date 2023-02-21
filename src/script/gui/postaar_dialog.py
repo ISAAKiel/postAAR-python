@@ -27,6 +27,7 @@ import sys
 
 from PyQt5 import QtCore, uic, QtWidgets
 from PyQt5.QtWidgets import QMessageBox, QApplication, QFileDialog
+from PyQt5.QtGui import QPixmap
 from qgis.gui import QgsMessageBar
 from qgis.utils import iface
 
@@ -41,6 +42,11 @@ class postAARDialog(QtWidgets.QDialog, FORM_CLASS):
         self.setupUi(self)
         self.setSizeGripEnabled(False);
         self.setWindowFlags(QtCore.Qt.Dialog | QtCore.Qt.MSWindowsFixedSizeDialogHint)
+
+        plg_dir = os.path.dirname(__file__)
+        image_path = os.path.join(plg_dir, "img", "rect_explanation.png")
+        pixmap = QPixmap(image_path)
+        self.explanation.setPixmap(QPixmap(pixmap))
 
         if not self.cmb_postid.currentField() and self.cmb_layer_selected.currentLayer():
             self.cmb_postid.setLayer(self.cmb_layer_selected.currentLayer())

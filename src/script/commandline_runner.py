@@ -18,6 +18,8 @@ try:
         parser.add_argument('-minimal_length_of_side', '-smin', help='Minimal length of the rectangle-sides', type=float, default=2.0)
         parser.add_argument('-maximal_difference_between_area_to_perfect_rectangle', '-adiff', help='Maximal diffence for area from perfect enclosing to real rectangle', type=float, default=0.05)
         parser.add_argument('-number_of_computercores', '-cores', help='Number of computercores used in computations', type=int, default=4)
+        parser.add_argument('-construct_buildings', '-b', help='Construct buildings from found rectangles', action='store_true'),
+        parser.add_argument('-do_not_construct_buildings', '-no_b', dest='construct_buildings', action='store_false')
 
         return parser.parse_args()
 
@@ -45,9 +47,11 @@ try:
             found_rects = alg.find_rects(windows, posts, arguments.maximal_length_of_side, arguments.minimal_length_of_side, arguments.maximal_difference_between_area_to_perfect_rectangle, number_of_computercores=arguments.number_of_computercores)
             print('\nFound {} rects in {:.3f}s'.format(len(found_rects), time.time()-start))
 
-            print('Finding buildings', end='', flush=True)
-            buildings = alg.findBuildings(found_rects, posts, number_of_computercores=arguments.number_of_computercores)
-            print('\nFound {} buildings in {:.3f}s'.format(len(buildings), time.time()-start))
+            buildings = []
+            if arguments.construct_buildings:
+                print('Finding buildings', end='', flush=True)
+                buildings = alg.findBuildings(found_rects, posts, number_of_computercores=arguments.number_of_computercores)
+                print('\nFound {} buildings in {:.3f}s'.format(len(buildings), time.time()-start))
 
             print('Writing data to file', arguments.outputfile)
 
