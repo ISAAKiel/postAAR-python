@@ -29,11 +29,11 @@ try:
             arguments = parseCommandline()
 
             print('Loading data')
-            posts = []
+            posts = dict()
             with open(os.path.join(tempfile.gettempdir(), arguments.file)) as f:
                 for line in f:
                     data = line.split()
-                    posts.append([float(data[0]), float(data[1]), float(data[2])])
+                    posts[int(data[0])] = [float(data[1]), float(data[2])]
 
             print('Loaded data (', (time.time()-start), 'ms)', sep='')
 
@@ -41,7 +41,7 @@ try:
             windows = hlp.buildWindows(posts, arguments.maximal_length_of_side)
             print('Build windows (', (time.time()-start), 's)', sep='')
 
-            print('Finding rects', end='' , flush=True)
+            print('Finding rects', flush=True)
             found_rects = alg.find_rects(windows, posts, arguments.maximal_length_of_side, arguments.minimal_length_of_side, arguments.maximal_difference_between_area_to_perfect_rectangle, number_of_computercores=arguments.number_of_computercores)
             print('\nFound {} rects in {:.3f}s'.format(len(found_rects), time.time()-start))
 

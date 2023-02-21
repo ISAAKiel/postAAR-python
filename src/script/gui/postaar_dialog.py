@@ -37,11 +37,13 @@ FORM_CLASS, _ = uic.loadUiType(os.path.join(
 
 class postAARDialog(QtWidgets.QDialog, FORM_CLASS):
     def __init__(self, parent=None):
-        """Constructor."""
         super(postAARDialog, self).__init__(parent)
         self.setupUi(self)
         self.setSizeGripEnabled(False);
         self.setWindowFlags(QtCore.Qt.Dialog | QtCore.Qt.MSWindowsFixedSizeDialogHint)
+
+        if not self.cmb_postid.currentField() and self.cmb_layer_selected.currentLayer():
+            self.cmb_postid.setLayer(self.cmb_layer_selected.currentLayer())
 
         self.lWarning.hide()
         self.checkDependencies()
