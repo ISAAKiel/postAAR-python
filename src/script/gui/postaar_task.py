@@ -13,7 +13,7 @@ import ntpath
 import json
 
 class postAARTask(QgsTask):
-    def __init__(self, iface, postlayer, postid, maximum_length_of_side, minimum_length_of_side, max_area_diff, buildings, multicore, python_executable, number_of_cores):
+    def __init__(self, iface, postlayer, postid, maximum_length_of_side, minimum_length_of_side, max_area_diff, construct_buildings, multicore, python_executable, number_of_cores):
         self.name = 'postAAR ' + postlayer.name() + ' (' + ("_".join(str(i) for i in [maximum_length_of_side, minimum_length_of_side, max_area_diff])) + ')'
         super().__init__(self.name, QgsTask.AllFlags)
         
@@ -25,7 +25,7 @@ class postAARTask(QgsTask):
         self.minimum_length_of_side = minimum_length_of_side
         self.max_area_diff = max_area_diff
 
-        self.buildings = buildings
+        self.construct_buildings = construct_buildings
 
         self.multicore = multicore
         self.python_executable = python_executable
@@ -33,6 +33,7 @@ class postAARTask(QgsTask):
 
         self.exception = None
         self.found_rects = []
+        self.buildings = []
 
         QgsMessageLog.logMessage('Preparing data', self.name, Qgis.Info)
         self.list_of_posts = dict()
@@ -67,7 +68,8 @@ class postAARTask(QgsTask):
                     '-smax', str(self.maximum_length_of_side),
                     '-smin', str(self.minimum_length_of_side),
                     '-adiff', str(self.max_area_diff),
-                    '-cores', str(self.number_of_cores)
+                    '-cores', str(self.number_of_cores),
+                    '-b' if self.construct_buildings else '-no_b'  # Todo: add building toggle
                 ]
             )
 
@@ -81,16 +83,17 @@ class postAARTask(QgsTask):
                     rectangle.setId(rectangle_dict['id'])
                     self.found_rects.append(rectangle)
                 QgsMessageLog.logMessage('Found ' + str(len(self.found_rects)) + ' rectangles', self.name, Qgis.Info)
-                for building_dict in results['buildings']:
-                    building = Building()
-                    for room_id in building_dict['rooms']:
-                        for rectangle in self.found_rects:
-                            if room_id == rectangle.id:
-                                building.addRoom(rectangle)
-                                break
-                    building.setId(building_dict['id'])
-                    self.buildings.append(building)
-                QgsMessageLog.logMessage('Found ' + str(len(self.buildings)) + ' buildings', self.name, Qgis.Info)
+                if self.construct_buildings:
+                    for building_dict in results['buildings']:
+                        building = Building()
+                        for room_id in building_dict['rooms']:
+                            for rectangle in self.found_rects:
+                                if room_id == rectangle.id:
+                                    building.addRoom(rectangle)
+                                    break
+                        building.setId(building_dict['id'])
+                        self.buildings.append(building)
+                    QgsMessageLog.logMessage('Found ' + str(len(self.buildings)) + ' buildings', self.name, Qgis.Info)
 
             transferfile.close()
             os.unlink(transferfile.name)
@@ -114,7 +117,7 @@ class postAARTask(QgsTask):
             QgsMessageLog.logMessage('Found ' + str(len(self.found_rects)) + ' rectangles', self.name, Qgis.Info)
             self.setProgress(60)
 
-            if True or self.buildings:
+            if self.construct_buildings:
                 QgsMessageLog.logMessage('Finding buildings', self.name, Qgis.Info)
                 self.buildings = alg.findBuildings(self.found_rects, self.list_of_posts, number_of_computercores=1)
                 QgsMessageLog.logMessage('Found ' + str(len(self.buildings)) + ' buildings', self.name, Qgis.Info)
