@@ -1,4 +1,6 @@
 [![Tests](https://github.com/ISAAKiel/postAAR-python/actions/workflows/tests.yml/badge.svg)](https://github.com/ISAAKiel/postAAR-python/actions/workflows/tests.yml)
+
+[![license](https://img.shields.io/badge/license-GPL%203-B50B82.svg)](https://www.r-project.org/Licenses/GPL-3)
 # postAAR-python
 Python Implementation for https://github.com/ISAAKiel/postAAR
 
