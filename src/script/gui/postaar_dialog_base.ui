@@ -147,7 +147,7 @@ color: rgb(255, 0, 0);</string>
         <item>
          <widget class="QLabel" name="cmb_Layer_selected_label">
           <property name="toolTip">
-           <string>Select a point layer from your map comprising the postholes and optional grouping attributes.</string>
+           <string>Select a projected point layer from your map comprising the postholes and optional grouping attributes.</string>
           </property>
           <property name="locale">
            <locale language="English" country="UnitedKingdom"/>
@@ -164,6 +164,12 @@ color: rgb(255, 0, 0);</string>
             <width>300</width>
             <height>0</height>
            </size>
+          </property>
+          <property name="toolTip">
+           <string>Select a projected point layer from your map comprising the postholes and optional grouping attributes.</string>
+          </property>
+          <property name="locale">
+           <locale language="English" country="UnitedKingdom"/>
           </property>
           <property name="currentText">
            <string/>
@@ -186,7 +192,7 @@ color: rgb(255, 0, 0);</string>
         <item>
          <widget class="QLabel" name="cmb_post_id_label">
           <property name="toolTip">
-           <string>To identify posts of a rectangle, UNIQUE is recommended</string>
+           <string>A UNIQUE identifier for the posts of a rectangle.</string>
           </property>
           <property name="locale">
            <locale language="English" country="UnitedKingdom"/>
@@ -203,6 +209,12 @@ color: rgb(255, 0, 0);</string>
             <width>200</width>
             <height>0</height>
            </size>
+          </property>
+          <property name="toolTip">
+           <string>A UNIQUE identifier for the posts of a rectangle.</string>
+          </property>
+          <property name="locale">
+           <locale language="English" country="UnitedKingdom"/>
           </property>
           <property name="minimumContentsLength">
            <number>1</number>
@@ -221,6 +233,12 @@ color: rgb(255, 0, 0);</string>
        <horstretch>0</horstretch>
        <verstretch>0</verstretch>
       </sizepolicy>
+     </property>
+     <property name="toolTip">
+      <string>Set the search parameters and hardware configuration.</string>
+     </property>
+     <property name="locale">
+      <locale language="English" country="UnitedKingdom"/>
      </property>
      <property name="currentIndex">
       <number>0</number>
@@ -265,6 +283,9 @@ color: rgb(255, 0, 0);</string>
         <layout class="QVBoxLayout" name="verticalLayout_5">
          <item>
           <widget class="QGroupBox" name="groupBox_3">
+           <property name="toolTip">
+            <string>Set the min. and max. distance between posts. </string>
+           </property>
            <property name="title">
             <string>Length of side</string>
            </property>
@@ -274,7 +295,7 @@ color: rgb(255, 0, 0);</string>
               <item>
                <widget class="QLabel" name="maximum_length_side_label">
                 <property name="toolTip">
-                 <string>Maximum lenght of a side of the rectangles to be found (map units).</string>
+                 <string>Maximum length of a side of the rectangles to be found (map units).</string>
                 </property>
                 <property name="locale">
                  <locale language="English" country="UnitedKingdom"/>
@@ -287,7 +308,7 @@ color: rgb(255, 0, 0);</string>
               <item>
                <widget class="QLabel" name="minimum_length_side_label">
                 <property name="toolTip">
-                 <string>Minimum lenght of a side of the rectangles to be found (map units).</string>
+                 <string>Minimum length of a side of the rectangles to be found (map units).</string>
                 </property>
                 <property name="locale">
                  <locale language="English" country="UnitedKingdom"/>
@@ -316,7 +337,7 @@ color: rgb(255, 0, 0);</string>
                  </size>
                 </property>
                 <property name="toolTip">
-                 <string>Maximum lenght of a side of the rectangles to be found (map units).</string>
+                 <string>Maximum length of a side of the rectangles to be found (map units).</string>
                 </property>
                 <property name="layoutDirection">
                  <enum>Qt::LeftToRight</enum>
@@ -328,7 +349,7 @@ color: rgb(255, 0, 0);</string>
                  <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
                 </property>
                 <property name="decimals">
-                 <number>2</number>
+                 <number>1</number>
                 </property>
                 <property name="maximum">
                  <double>9999999.000000000000000</double>
@@ -337,7 +358,7 @@ color: rgb(255, 0, 0);</string>
                  <double>0.500000000000000</double>
                 </property>
                 <property name="value">
-                 <double>20.000000000000000</double>
+                 <double>10.000000000000000</double>
                 </property>
                </widget>
               </item>
@@ -355,20 +376,26 @@ color: rgb(255, 0, 0);</string>
                   <height>16777215</height>
                  </size>
                 </property>
+                <property name="toolTip">
+                 <string>Minimum length of a side of the rectangles to be found (map units).</string>
+                </property>
                 <property name="locale">
                  <locale language="English" country="UnitedKingdom"/>
                 </property>
                 <property name="alignment">
                  <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
                 </property>
+                <property name="decimals">
+                 <number>1</number>
+                </property>
                 <property name="maximum">
-                 <double>199.990000000000009</double>
+                 <double>200.000000000000000</double>
                 </property>
                 <property name="singleStep">
                  <double>0.500000000000000</double>
                 </property>
                 <property name="value">
-                 <double>10.000000000000000</double>
+                 <double>1.000000000000000</double>
                 </property>
                </widget>
               </item>
@@ -379,6 +406,9 @@ color: rgb(255, 0, 0);</string>
          </item>
          <item>
           <widget class="QGroupBox" name="groupBox_4">
+           <property name="toolTip">
+            <string>Difference in percent to the minimum bounding rectangle.</string>
+           </property>
            <property name="title">
             <string>Difference to minimum bounding rectangle area</string>
            </property>
@@ -394,7 +424,7 @@ color: rgb(255, 0, 0);</string>
                  </sizepolicy>
                 </property>
                 <property name="toolTip">
-                 <string>Opposite sides of the rectangle should not differ more than the given value. Percent in 0.00 - 0.20</string>
+                 <string>Maximum difference to a minimum bounding rectangle.</string>
                 </property>
                 <property name="locale">
                  <locale language="English" country="UnitedKingdom"/>
@@ -422,6 +452,9 @@ color: rgb(255, 0, 0);</string>
                   <height>16777215</height>
                  </size>
                 </property>
+                <property name="toolTip">
+                 <string>0 = perfect, 5 = skew visible, 20 = very crooked.</string>
+                </property>
                 <property name="locale">
                  <locale language="English" country="UnitedKingdom"/>
                 </property>
@@ -429,19 +462,19 @@ color: rgb(255, 0, 0);</string>
                  <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
                 </property>
                 <property name="decimals">
-                 <number>0</number>
+                 <number>1</number>
                 </property>
                 <property name="minimum">
                  <double>0.000000000000000</double>
                 </property>
                 <property name="maximum">
-                 <double>100.000000000000000</double>
+                 <double>31.000000000000000</double>
                 </property>
                 <property name="singleStep">
-                 <double>1.000000000000000</double>
+                 <double>0.500000000000000</double>
                 </property>
                 <property name="value">
-                 <double>20.000000000000000</double>
+                 <double>10.000000000000000</double>
                 </property>
                </widget>
               </item>
@@ -452,6 +485,9 @@ color: rgb(255, 0, 0);</string>
          </item>
          <item>
           <widget class="QCheckBox" name="cBConstructBuilding">
+           <property name="toolTip">
+            <string>Connect rectangles with a common edge.</string>
+           </property>
            <property name="text">
             <string>Construct buildings from found rectangles</string>
            </property>
@@ -622,7 +658,7 @@ color: rgb(255, 0, 0);</string>
    <item>
     <widget class="QDialogButtonBox" name="btn_ok_abort">
      <property name="locale">
-      <locale language="German" country="Germany"/>
+      <locale language="English" country="UnitedKingdom"/>
      </property>
      <property name="orientation">
       <enum>Qt::Horizontal</enum>
