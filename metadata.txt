@@ -10,14 +10,14 @@
 name=postAAR
 qgisMinimumVersion=3.0
 description=This plugin detects points forming a rectangular within defined margins to mark potential houses  
-version=0.1
+version=1.0
 author=ISAAKiel
 email=isaak@ufg.uni-kiel.de
 
 about=Detect possible houses in a plan of postholes.
 
-tracker=http://bugs
-repository=http://repo
+tracker=https://github.com/ISAAKiel/postAAR-python/issues
+repository=https://github.com/ISAAKiel/postAAR-python
 # End of mandatory metadata
 
 # Recommended items:
@@ -30,7 +30,7 @@ tags=python
 
 homepage=https://github.com/ISAAKiel/postAAR-python
 category=Plugins
-icon=icon.png
+icon=src\script\gui\img\icon.png
 # experimental flag
 experimental=True
 
