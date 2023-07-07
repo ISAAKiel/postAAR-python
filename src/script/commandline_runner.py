@@ -19,9 +19,10 @@ try:
         parser.add_argument('-maximal_difference_between_area_to_perfect_rectangle', '-adiff', help='Maximal diffence for area from perfect enclosing to real rectangle', type=float, default=0.05)
         parser.add_argument('-number_of_computercores', '-cores', help='Number of computercores used in computations', type=int, default=4)
         parser.add_argument('-construct_buildings', '-b', help='Construct buildings from found rectangles', action='store_true'),
-        parser.add_argument('-do_not_construct_buildings', '-no_b', dest='construct_buildings', action='store_false')
+        parser.add_argument('-construct_buildings_fast', '-bf', help='Construct buildings from found rectangles fast (might not find overlapping buildings)', action='store_true'),
 
-        return parser.parse_args()
+        args, unknown = parser.parse_known_args()
+        return args
 
     if __name__ == '__main__':
         try:
@@ -48,9 +49,9 @@ try:
             print('\nFound {} rects in {:.3f}s'.format(len(found_rects), time.time()-start))
 
             buildings = []
-            if arguments.construct_buildings:
+            if arguments.construct_buildings or arguments.construct_buildings_fast:
                 print('Finding buildings', end='', flush=True)
-                buildings = alg.findBuildings(found_rects, posts, number_of_computercores=arguments.number_of_computercores)
+                buildings = alg.findBuildings(found_rects, fast=arguments.construct_buildings_fast, number_of_computercores=arguments.number_of_computercores)
                 print('\nFound {} buildings in {:.3f}s'.format(len(buildings), time.time()-start))
 
             print('Writing data to file', arguments.outputfile)

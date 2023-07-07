@@ -117,73 +117,96 @@ def find_rects(windows, posts, maximal_length_of_side, minimal_length_of_side, m
     return rectangles
 
 
-def findBuildings(found_rects, posts=None, number_of_computercores=4):
-    if number_of_computercores > 1:
-        with Pool(processes=number_of_computercores) as pool:
+def findBuildings(found_rects, fast=False, number_of_computercores=4):
+    if not fast:
+        if number_of_computercores > 1:
+            with Pool(processes=number_of_computercores) as pool:
 
-            progress = ProgressReport()
+                progress = ProgressReport()
 
-            buildings_to_check = []
+                buildings_to_check = []
+                for rect in found_rects:
+                    buildings_to_check.append(Building(rect))
+
+                buildings = buildings_to_check
+                with Manager() as manager:
+                    found_rects_multi = manager.list(found_rects)
+                    while len(buildings_to_check) > 0:
+
+                        building_pools = dict()
+                        for i in range(number_of_computercores):
+                            building_pools[i] = []
+                        for i in range(len(buildings_to_check)):
+                            building_pools[i % number_of_computercores].append(buildings_to_check[i])
+
+                        results = []
+                        for pod in building_pools.values():
+                            results.append(pool.apply_async(eeeh, (pod, found_rects_multi, )))
+
+                        new_buildings = set()
+                        all_old = set()
+                        for result in results:
+                            new, old = result.get()
+                            new_buildings |= new
+                            all_old |= old
+                        new_buildings = list(new_buildings)
+
+                        buildings_to_check = manager.list(new_buildings)
+
+                        buildings += all_old
+
+                        progress.printProgress('(' + str(len(buildings[-1].rooms)) + ') Locking at possible buildings ' + str(len(buildings_to_check)) + ' of ' + str(len(buildings)), (len(buildings)-len(buildings_to_check)) / len(buildings))
+
+                real_buildings_first_pass = set()
+                for building in buildings:
+                    if len(building.rooms) > 1:
+                        real_buildings_first_pass.add(building)
+
+                progress.printProgress('Checking for duplicate buildings ' + str(len(real_buildings_first_pass)), 1)
+
+                real_buildings = set()
+                for building in real_buildings_first_pass:
+                    if not is_contained_in_other(building, buildings):  # TODO: multithreading
+                        real_buildings.add(building)
+
+                buildings = list(real_buildings)
+        else:
+            building_list = []
             for rect in found_rects:
-                buildings_to_check.append(Building(rect))
+                building_list.append(Building(rect))
 
-            buildings = buildings_to_check
-            with Manager() as manager:
-                found_rects1 = manager.list(found_rects)
-                while len(buildings_to_check) > 0:
-
-                    building_pools = dict()
-                    for i in range(number_of_computercores):
-                        building_pools[i] = []
-                    for i in range(len(buildings_to_check)):
-                        building_pools[i % number_of_computercores].append(buildings_to_check[i])
-
-                    results = []
-                    for pod in building_pools.values():
-                        results.append(pool.apply_async(eeeh, (pod, found_rects, )))
-
-                    new_buildings = set()
-                    all_old = set()
-                    for result in results:
-                        new, old = result.get()
-                        new_buildings |= new
-                        all_old |= old
-                    new_buildings = list(new_buildings)
-
-                    buildings_to_check = manager.list(new_buildings)
-
-                    buildings += all_old
-
-                    progress.printProgress('(' + str(len(buildings[-1].rooms)) + ') Locking at possible buildings ' + str(len(buildings_to_check)) + ' of ' + str(len(buildings)), (len(buildings)-len(buildings_to_check)) / len(buildings))
-
-            real_buildings_first_pass = set()
-            for building in buildings:
+            buildings = set()
+            for building in construct_building(building_list, found_rects):
                 if len(building.rooms) > 1:
-                    real_buildings_first_pass.add(building)
-
-            progress.printProgress('Checking for duplicate buildings ' + str(len(real_buildings_first_pass)), 1)
-
-            real_buildings = set()
-            for building in real_buildings_first_pass:
-                if not is_contained_in_other(building, buildings):  # TODO: multithreading
-                    real_buildings.add(building)
-
-            buildings = list(real_buildings)
+                    buildings.add(building)
     else:
-        building_list = []
-        for rect in found_rects:
-            building_list.append(Building(rect))
-
-        buildings = set()
-        for building in construct_building(building_list, found_rects):
-            if len(building.rooms) > 1:
-                buildings.add(building)
-
+        buildings = construct_buildings_fast(found_rects)
 
     id = 0
     for building in buildings:
         building.setId(id)
         id += 1
+
+    return buildings
+
+
+def construct_buildings_fast(found_rects):
+    buildings = list()
+    free_rects = list(found_rects)
+
+    while free_rects:
+        current_building = Building(free_rects.pop(0))
+        current_rect_index = 0
+        while current_rect_index < len(free_rects):
+            if (current_building.is_connected_to(free_rects[current_rect_index]) and
+                    current_building.touches(free_rects[current_rect_index]) and
+                    current_building.copy().addRoom(free_rects[current_rect_index]).is_valid()):
+                current_building.addRoom(free_rects.pop(current_rect_index))
+                current_rect_index = 0
+            else:
+                current_rect_index += 1
+        if len(current_building.rooms) > 1:
+            buildings.append(current_building)
 
     return buildings
 

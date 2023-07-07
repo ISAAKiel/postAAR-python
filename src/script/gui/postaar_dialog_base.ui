@@ -484,16 +484,52 @@ color: rgb(255, 0, 0);</string>
           </widget>
          </item>
          <item>
-          <widget class="QCheckBox" name="cBConstructBuilding">
+          <widget class="QGroupBox" name="gBConstructBuilding">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>0</height>
+            </size>
+           </property>
+           <property name="focusPolicy">
+            <enum>Qt::NoFocus</enum>
+           </property>
            <property name="toolTip">
             <string>Connect rectangles with a common edge.</string>
            </property>
-           <property name="text">
+           <property name="title">
             <string>Construct buildings from found rectangles</string>
            </property>
-           <property name="checked">
+           <property name="checkable">
             <bool>true</bool>
            </property>
+           <layout class="QHBoxLayout" name="horizontalLayout_5">
+            <item>
+             <widget class="QCheckBox" name="cBFindBuildingFast">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="toolTip">
+               <string>Faster, but less precise method to detect buildings</string>
+              </property>
+              <property name="text">
+               <string>Fast (Might miss overlapping buildings!)</string>
+              </property>
+              <property name="checked">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+           </layout>
           </widget>
          </item>
         </layout>
