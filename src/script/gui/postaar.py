@@ -136,7 +136,8 @@ class postAAR:
                 self.dlg.minimum_length_of_side.value(),
                 self.dlg.maximal_bounding_area_difference.value() / 100.0,
 
-                self.dlg.cBConstructBuilding.isChecked(),
+                self.dlg.gBConstructBuilding.isChecked(),
+                self.dlg.cBFindBuildingFast.isChecked(),
 
                 self.dlg.gBUseMulticore.isChecked(),
                 self.dlg.lEPythonDistribution.text(),

@@ -37,6 +37,8 @@ class Building:
         self.hash = hash(self.identity)
         self.form = unary_union([self.form, rect.polygon])
 
+        return self
+
     def is_valid(self):
         return self.form.is_valid and isinstance(self.form, Polygon) and len(list(self.form.interiors)) == 0
 
